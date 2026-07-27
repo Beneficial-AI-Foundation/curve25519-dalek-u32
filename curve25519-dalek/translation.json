@@ -1,0 +1,2052 @@
+{
+  "aeneas_version": "b059c34a",
+  "charon_version": "0.1.223",
+  "crate": "curve25519_dalek",
+  "functions": [
+    {
+      "def_id": 61,
+      "lean_name": "curve25519_dalek.MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "core::array::{impl core::iter::traits::collect::IntoIterator<&'a mut T, core::slice::iter::IterMut<'a, T>> for &'a mut [T; N]}::into_iter",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/array/mod.rs",
+        "begin_line": 376,
+        "end_line": 376
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 64,
+      "lean_name": "curve25519_dalek.subtle.Choice.Insts.CoreConvertFromU8.from",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "subtle::{impl core::convert::From<u8> for subtle::Choice}::from",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 238,
+        "end_line": 238
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 49,
+      "lean_name": "curve25519_dalek.subtle.ConditionallySelectable.conditional_assign.default",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "subtle::ConditionallySelectable::conditional_assign",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 442,
+        "end_line": 442
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 50,
+      "lean_name": "curve25519_dalek.subtle.ConditionallySelectable.conditional_swap.default",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "subtle::ConditionallySelectable::conditional_swap",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 469,
+        "end_line": 469
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 51,
+      "lean_name": "curve25519_dalek.U32.Insts.SubtleConditionallySelectable.conditional_select",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "subtle::{impl subtle::ConditionallySelectable for u32}::conditional_select",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 513,
+        "end_line": 513
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 52,
+      "lean_name": "curve25519_dalek.U32.Insts.SubtleConditionallySelectable.conditional_assign",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "subtle::{impl subtle::ConditionallySelectable for u32}::conditional_assign",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 521,
+        "end_line": 521
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 53,
+      "lean_name": "curve25519_dalek.U32.Insts.SubtleConditionallySelectable.conditional_swap",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "subtle::{impl subtle::ConditionallySelectable for u32}::conditional_swap",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 529,
+        "end_line": 529
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 72,
+      "lean_name": "curve25519_dalek.zeroize.Zeroize.Blanket.zeroize",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "zeroize::{impl zeroize::Zeroize for Z}::zeroize",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs",
+        "begin_line": 301,
+        "end_line": 301
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 45,
+      "lean_name": "curve25519_dalek.Array.Insts.ZeroizeZeroize.zeroize",
+      "lean_file": "translated/FunsExternal_Template.lean",
+      "rust_name": "zeroize::{impl zeroize::Zeroize for [Z; N]}::zeroize",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs",
+        "begin_line": 373,
+        "end_line": 373
+      },
+      "is_opaque": true,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 1,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreCloneClone.clone",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::clone::Clone for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::clone",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 53,
+        "end_line": 53
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 4,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.ZeroizeZeroize.zeroize",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl zeroize::Zeroize for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::zeroize",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 64,
+        "end_line": 66
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 5,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithAddAssignSharedBFieldElement2625.add_assign_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::AddAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::add_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 71,
+        "end_line": 73
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithAddAssignSharedBFieldElement2625.add_assign"
+    },
+    {
+      "def_id": 5,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithAddAssignSharedBFieldElement2625.add_assign_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::AddAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::add_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 71,
+        "end_line": 73
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithAddAssignSharedBFieldElement2625.add_assign"
+    },
+    {
+      "def_id": 5,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithAddAssignSharedBFieldElement2625.add_assign",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::AddAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::add_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 70,
+        "end_line": 74
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": true
+    },
+    {
+      "def_id": 6,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithAddSharedBFieldElement2625FieldElement2625.add",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Add<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}::add",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 79,
+        "end_line": 83
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 57,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.reduce.carry",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::reduce::carry",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 343,
+        "end_line": 354
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 18,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.reduce",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::reduce",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 336,
+        "end_line": 390
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 7,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithSubAssignSharedBFieldElement2625.sub_assign",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::SubAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::sub_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 87,
+        "end_line": 105
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 8,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithSubSharedBFieldElement2625FieldElement2625.sub",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Sub<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}::sub",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 110,
+        "end_line": 114
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 48,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.MulSharedAFieldElement2625SharedBFieldElement2625FieldElement2625.mul.m",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Mul<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}::mul::m",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 132,
+        "end_line": 134
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 10,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithMulSharedBFieldElement2625FieldElement2625.mul",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Mul<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}::mul",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 128,
+        "end_line": 227
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 9,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithMulAssignSharedBFieldElement2625.mul_assign",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::MulAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::mul_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 118,
+        "end_line": 121
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 16,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.negate",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::negate",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 302,
+        "end_line": 317
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 11,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithNegFieldElement2625.neg",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Neg<curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}::neg",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 232,
+        "end_line": 236
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 14,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.SubtleConditionallySelectable.conditional_swap",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl subtle::ConditionallySelectable for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::conditional_swap",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 272,
+        "end_line": 283
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 13,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.SubtleConditionallySelectable.conditional_assign",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl subtle::ConditionallySelectable for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::conditional_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 259,
+        "end_line": 270
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 12,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.SubtleConditionallySelectable.conditional_select",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl subtle::ConditionallySelectable for curve25519_dalek::backend::serial::u32::field::FieldElement2625}::conditional_select",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 240,
+        "end_line": 257
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 15,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.from_limbs",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::from_limbs",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 287,
+        "end_line": 289
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 60,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square_inner.m",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::square_inner::m",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 572,
+        "end_line": 574
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 21,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square_inner",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::square_inner",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 551,
+        "end_line": 592
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 22,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::square",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 595,
+        "end_line": 597
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 17,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.pow2k_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::pow2k",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 323,
+        "end_line": 325
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.pow2k"
+    },
+    {
+      "def_id": 17,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.pow2k_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::pow2k",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 323,
+        "end_line": 325
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.pow2k"
+    },
+    {
+      "def_id": 17,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.pow2k",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::pow2k",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 320,
+        "end_line": 327
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 59,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.from_bytes.load4_at",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::from_bytes::load4_at",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 411,
+        "end_line": 416
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 58,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.from_bytes.load3_at",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::from_bytes::load3_at",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 406,
+        "end_line": 408
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 19,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.from_bytes",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::from_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 404,
+        "end_line": 432
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 20,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.to_bytes",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::to_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 437,
+        "end_line": 548
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 23,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square2_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::square2",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 602,
+        "end_line": 604
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square2"
+    },
+    {
+      "def_id": 23,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square2_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::square2",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 602,
+        "end_line": 604
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square2"
+    },
+    {
+      "def_id": 23,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.square2",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::square2",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 600,
+        "end_line": 606
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 24,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreCloneClone.clone",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::clone::Clone for curve25519_dalek::backend::serial::u32::scalar::Scalar29}::clone",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 24,
+        "end_line": 24
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 26,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.ZeroizeZeroize.zeroize",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl zeroize::Zeroize for curve25519_dalek::backend::serial::u32::scalar::Scalar29}::zeroize",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 35,
+        "end_line": 37
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 27,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexUsizeU32.index",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::ops::index::Index<usize, u32> for curve25519_dalek::backend::serial::u32::scalar::Scalar29}::index",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 42,
+        "end_line": 44
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 28,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexMutUsizeU32.index_mut",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::ops::index::IndexMut<usize, u32> for curve25519_dalek::backend::serial::u32::scalar::Scalar29}::index_mut",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 48,
+        "end_line": 50
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 0,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.m",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::m",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 55,
+        "end_line": 57
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 29,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_loop0_loop0.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 68,
+        "end_line": 70
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 1, "pos": [ 0, 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes"
+    },
+    {
+      "def_id": 29,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_loop0_loop0",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 68,
+        "end_line": 70
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 1, "pos": [ 0, 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes"
+    },
+    {
+      "def_id": 29,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_loop0.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 67,
+        "end_line": 71
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes"
+    },
+    {
+      "def_id": 29,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_loop0",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 67,
+        "end_line": 71
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes"
+    },
+    {
+      "def_id": 29,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 65,
+        "end_line": 88
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 71,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.montgomery_reduce.part2",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::montgomery_reduce::part2",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 337,
+        "end_line": 340
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 70,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.montgomery_reduce.part1",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::montgomery_reduce::part1",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 331,
+        "end_line": 334
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 34,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.conditional_add_l_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::conditional_add_l",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 208,
+        "end_line": 208
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.conditional_add_l"
+    },
+    {
+      "def_id": 34,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.conditional_add_l_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::conditional_add_l",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 208,
+        "end_line": 208
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.conditional_add_l"
+    },
+    {
+      "def_id": 34,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.conditional_add_l",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::conditional_add_l",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 204,
+        "end_line": 214
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 33,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.sub_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::sub",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 194,
+        "end_line": 197
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.sub"
+    },
+    {
+      "def_id": 33,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.sub_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::sub",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 194,
+        "end_line": 197
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.sub"
+    },
+    {
+      "def_id": 33,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.sub",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::sub",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 188,
+        "end_line": 202
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 38,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.montgomery_reduce",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::montgomery_reduce",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 328,
+        "end_line": 369
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 36,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.mul_internal",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::mul_internal",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 234,
+        "end_line": 287
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 41,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.montgomery_mul",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::montgomery_mul",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 388,
+        "end_line": 390
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 32,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.add_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::add",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 178,
+        "end_line": 181
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.add"
+    },
+    {
+      "def_id": 32,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.add_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::add",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 178,
+        "end_line": 181
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.add"
+    },
+    {
+      "def_id": 32,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.add",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::add",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 172,
+        "end_line": 185
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 30,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide_loop0_loop0.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes_wide",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 95,
+        "end_line": 97
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 1, "pos": [ 0, 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide"
+    },
+    {
+      "def_id": 30,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide_loop0_loop0",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes_wide",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 95,
+        "end_line": 97
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 1, "pos": [ 0, 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide"
+    },
+    {
+      "def_id": 30,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide_loop0.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes_wide",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 94,
+        "end_line": 98
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide"
+    },
+    {
+      "def_id": 30,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide_loop0",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes_wide",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 94,
+        "end_line": 98
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide"
+    },
+    {
+      "def_id": 30,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_bytes_wide",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_bytes_wide",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 92,
+        "end_line": 127
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 31,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.to_bytes",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::to_bytes",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 132,
+        "end_line": 169
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 35,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.shr1_assign_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::shr1_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 220,
+        "end_line": 225
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.shr1_assign"
+    },
+    {
+      "def_id": 35,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.shr1_assign_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::shr1_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 220,
+        "end_line": 225
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.shr1_assign"
+    },
+    {
+      "def_id": 35,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.shr1_assign",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::shr1_assign",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 218,
+        "end_line": 227
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 37,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.square_internal",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::square_internal",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 292,
+        "end_line": 323
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": false,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 39,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.mul",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::mul",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 373,
+        "end_line": 376
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 40,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.square",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::square",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 381,
+        "end_line": 384
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 42,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.montgomery_square",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::montgomery_square",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 394,
+        "end_line": 396
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 43,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.as_montgomery",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::as_montgomery",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 400,
+        "end_line": 402
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    },
+    {
+      "def_id": 44,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_montgomery_loop.body",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_montgomery",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 408,
+        "end_line": 410
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": true },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_montgomery"
+    },
+    {
+      "def_id": 44,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_montgomery_loop",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_montgomery",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 408,
+        "end_line": 410
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false,
+      "loop": { "id": 0, "pos": [ 0 ], "is_body": false },
+      "parent_lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_montgomery"
+    },
+    {
+      "def_id": 44,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.from_montgomery",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::from_montgomery",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 406,
+        "end_line": 412
+      },
+      "is_opaque": false,
+      "can_fail": true,
+      "can_diverge": true,
+      "is_rec": false,
+      "reducible": false
+    }
+  ],
+  "types": [
+    {
+      "def_id": 16,
+      "lean_name": "curve25519_dalek.subtle.Choice",
+      "lean_file": "translated/TypesExternal_Template.lean",
+      "rust_name": "subtle::Choice",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 120,
+        "end_line": 120
+      }
+    },
+    {
+      "def_id": 1,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::Scalar29",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 25,
+        "end_line": 25
+      }
+    },
+    {
+      "def_id": 0,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::FieldElement2625",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 54,
+        "end_line": 54
+      }
+    }
+  ],
+  "globals": [
+    {
+      "def_id": 45,
+      "lean_name": "curve25519_dalek.backend.serial.u32.constants.L",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::constants::L",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/constants.rs",
+        "begin_line": 98,
+        "end_line": 101
+      },
+      "can_fail": false
+    },
+    {
+      "def_id": 39,
+      "lean_name": "curve25519_dalek.backend.serial.u32.constants.LFACTOR",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::constants::LFACTOR",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/constants.rs",
+        "begin_line": 104,
+        "end_line": 104
+      },
+      "can_fail": false
+    },
+    {
+      "def_id": 43,
+      "lean_name": "curve25519_dalek.backend.serial.u32.constants.R",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::constants::R",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/constants.rs",
+        "begin_line": 107,
+        "end_line": 110
+      },
+      "can_fail": false
+    },
+    {
+      "def_id": 44,
+      "lean_name": "curve25519_dalek.backend.serial.u32.constants.RR",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::constants::RR",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/constants.rs",
+        "begin_line": 113,
+        "end_line": 116
+      },
+      "can_fail": false
+    },
+    {
+      "def_id": 18,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.reduce.LOW_26_BITS",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::reduce::LOW_26_BITS",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 339,
+        "end_line": 339
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 17,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.reduce.LOW_25_BITS",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::reduce::LOW_25_BITS",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 338,
+        "end_line": 338
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 9,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.ZERO",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::ZERO",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 292,
+        "end_line": 292
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 10,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.ONE",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::ONE",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 294,
+        "end_line": 294
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 11,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.MINUS_ONE",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::MINUS_ONE",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 296,
+        "end_line": 299
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 19,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.from_bytes.LOW_23_BITS",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::from_bytes::LOW_23_BITS",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 419,
+        "end_line": 419
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 21,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.to_bytes.LOW_26_BITS",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::to_bytes::LOW_26_BITS",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 480,
+        "end_line": 480
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 20,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.to_bytes.LOW_25_BITS",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{curve25519_dalek::backend::serial::u32::field::FieldElement2625}::to_bytes::LOW_25_BITS",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 479,
+        "end_line": 479
+      },
+      "can_fail": true
+    },
+    {
+      "def_id": 16,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.ZERO",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{curve25519_dalek::backend::serial::u32::scalar::Scalar29}::ZERO",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 61,
+        "end_line": 61
+      },
+      "can_fail": false
+    }
+  ],
+  "trait_decls": [
+    {
+      "def_id": 7,
+      "lean_name": "curve25519_dalek.core.ops.arith.Add",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::Add",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 76,
+        "end_line": 76
+      }
+    },
+    {
+      "def_id": 9,
+      "lean_name": "curve25519_dalek.core.ops.arith.Sub",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::Sub",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 188,
+        "end_line": 188
+      }
+    },
+    {
+      "def_id": 11,
+      "lean_name": "curve25519_dalek.core.ops.arith.Mul",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::Mul",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 322,
+        "end_line": 322
+      }
+    },
+    {
+      "def_id": 12,
+      "lean_name": "curve25519_dalek.core.ops.arith.Neg",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::Neg",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 690,
+        "end_line": 690
+      }
+    },
+    {
+      "def_id": 6,
+      "lean_name": "curve25519_dalek.core.ops.arith.AddAssign",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::AddAssign",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 768,
+        "end_line": 768
+      }
+    },
+    {
+      "def_id": 8,
+      "lean_name": "curve25519_dalek.core.ops.arith.SubAssign",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::SubAssign",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 839,
+        "end_line": 839
+      }
+    },
+    {
+      "def_id": 10,
+      "lean_name": "curve25519_dalek.core.ops.arith.MulAssign",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "core::ops::arith::MulAssign",
+      "is_local": false,
+      "source": {
+        "file": "/rustc/library/core/src/ops/arith.rs",
+        "begin_line": 901,
+        "end_line": 901
+      }
+    },
+    {
+      "def_id": 13,
+      "lean_name": "curve25519_dalek.subtle.ConditionallySelectable",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "subtle::ConditionallySelectable",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs",
+        "begin_line": 393,
+        "end_line": 393
+      }
+    },
+    {
+      "def_id": 5,
+      "lean_name": "curve25519_dalek.zeroize.Zeroize",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "zeroize::Zeroize",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs",
+        "begin_line": 272,
+        "end_line": 272
+      }
+    },
+    {
+      "def_id": 16,
+      "lean_name": "curve25519_dalek.zeroize.DefaultIsZeroes",
+      "lean_file": "translated/Types.lean",
+      "rust_name": "zeroize::DefaultIsZeroes",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs",
+        "begin_line": 282,
+        "end_line": 282
+      }
+    }
+  ],
+  "trait_impls": [
+    {
+      "def_id": 21,
+      "lean_name": "curve25519_dalek.zeroize.Zeroize.Blanket",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "zeroize::{impl zeroize::Zeroize for Z}",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs",
+        "begin_line": 297,
+        "end_line": 299
+      },
+      "impl_trait_def_id": 5,
+      "impl_trait_rust_name": "zeroize::Zeroize",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 22,
+      "lean_name": "curve25519_dalek.U32.Insts.ZeroizeDefaultIsZeroes",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "zeroize::{impl zeroize::DefaultIsZeroes for u32}",
+      "is_local": false,
+      "source": {
+        "file": "/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs",
+        "begin_line": 309,
+        "end_line": 309
+      },
+      "impl_trait_def_id": 16,
+      "impl_trait_rust_name": "zeroize::DefaultIsZeroes",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 2,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreCloneClone",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::clone::Clone for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 53,
+        "end_line": 53
+      },
+      "impl_trait_def_id": 1,
+      "impl_trait_rust_name": "core::clone::Clone",
+      "impl_trait_is_builtin": true
+    },
+    {
+      "def_id": 0,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreMarkerCopy",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::marker::Copy for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 53,
+        "end_line": 53
+      },
+      "impl_trait_def_id": 0,
+      "impl_trait_rust_name": "core::marker::Copy",
+      "impl_trait_is_builtin": true
+    },
+    {
+      "def_id": 4,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.ZeroizeZeroize",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl zeroize::Zeroize for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 63,
+        "end_line": 67
+      },
+      "impl_trait_def_id": 5,
+      "impl_trait_rust_name": "zeroize::Zeroize",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 5,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithAddAssignSharedBFieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::AddAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 69,
+        "end_line": 75
+      },
+      "impl_trait_def_id": 6,
+      "impl_trait_rust_name": "core::ops::arith::AddAssign",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 6,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithAddSharedBFieldElement2625FieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Add<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 77,
+        "end_line": 84
+      },
+      "impl_trait_def_id": 7,
+      "impl_trait_rust_name": "core::ops::arith::Add",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 7,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithSubAssignSharedBFieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::SubAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 86,
+        "end_line": 106
+      },
+      "impl_trait_def_id": 8,
+      "impl_trait_rust_name": "core::ops::arith::SubAssign",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 8,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithSubSharedBFieldElement2625FieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Sub<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 108,
+        "end_line": 115
+      },
+      "impl_trait_def_id": 9,
+      "impl_trait_rust_name": "core::ops::arith::Sub",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 9,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.CoreOpsArithMulAssignSharedBFieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::MulAssign<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625> for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 117,
+        "end_line": 122
+      },
+      "impl_trait_def_id": 10,
+      "impl_trait_rust_name": "core::ops::arith::MulAssign",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 10,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithMulSharedBFieldElement2625FieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Mul<&'b curve25519_dalek::backend::serial::u32::field::FieldElement2625, curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 124,
+        "end_line": 228
+      },
+      "impl_trait_def_id": 11,
+      "impl_trait_rust_name": "core::ops::arith::Mul",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 11,
+      "lean_name": "curve25519_dalek.SharedAFieldElement2625.Insts.CoreOpsArithNegFieldElement2625",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl core::ops::arith::Neg<curve25519_dalek::backend::serial::u32::field::FieldElement2625> for &'a curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 230,
+        "end_line": 237
+      },
+      "impl_trait_def_id": 12,
+      "impl_trait_rust_name": "core::ops::arith::Neg",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 12,
+      "lean_name": "curve25519_dalek.backend.serial.u32.field.FieldElement2625.Insts.SubtleConditionallySelectable",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::field::{impl subtle::ConditionallySelectable for curve25519_dalek::backend::serial::u32::field::FieldElement2625}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/field.rs",
+        "begin_line": 239,
+        "end_line": 284
+      },
+      "impl_trait_def_id": 13,
+      "impl_trait_rust_name": "subtle::ConditionallySelectable",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 15,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreCloneClone",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::clone::Clone for curve25519_dalek::backend::serial::u32::scalar::Scalar29}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 24,
+        "end_line": 24
+      },
+      "impl_trait_def_id": 1,
+      "impl_trait_rust_name": "core::clone::Clone",
+      "impl_trait_is_builtin": true
+    },
+    {
+      "def_id": 13,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreMarkerCopy",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::marker::Copy for curve25519_dalek::backend::serial::u32::scalar::Scalar29}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 24,
+        "end_line": 24
+      },
+      "impl_trait_def_id": 0,
+      "impl_trait_rust_name": "core::marker::Copy",
+      "impl_trait_is_builtin": true
+    },
+    {
+      "def_id": 17,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.ZeroizeZeroize",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl zeroize::Zeroize for curve25519_dalek::backend::serial::u32::scalar::Scalar29}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 34,
+        "end_line": 38
+      },
+      "impl_trait_def_id": 5,
+      "impl_trait_rust_name": "zeroize::Zeroize",
+      "impl_trait_is_builtin": false
+    },
+    {
+      "def_id": 18,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexUsizeU32",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::ops::index::Index<usize, u32> for curve25519_dalek::backend::serial::u32::scalar::Scalar29}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 40,
+        "end_line": 45
+      },
+      "impl_trait_def_id": 14,
+      "impl_trait_rust_name": "core::ops::index::Index",
+      "impl_trait_is_builtin": true
+    },
+    {
+      "def_id": 19,
+      "lean_name": "curve25519_dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexMutUsizeU32",
+      "lean_file": "translated/Funs.lean",
+      "rust_name": "curve25519_dalek::backend::serial::u32::scalar::{impl core::ops::index::IndexMut<usize, u32> for curve25519_dalek::backend::serial::u32::scalar::Scalar29}",
+      "is_local": true,
+      "source": {
+        "file": "curve25519-dalek/src/backend/serial/u32/scalar.rs",
+        "begin_line": 47,
+        "end_line": 51
+      },
+      "impl_trait_def_id": 15,
+      "impl_trait_rust_name": "core::ops::index::IndexMut",
+      "impl_trait_is_builtin": true
+    }
+  ]
+}

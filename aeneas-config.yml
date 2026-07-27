@@ -1,0 +1,70 @@
+# Aeneas extraction configuration
+# Used by `npm run aeneas-{install,extract}` to run charon and aeneas for Lean code generation.
+#
+# The `rev` in lakefile.toml MUST be kept in sync with `aeneas.commit` below.
+
+aeneas:
+  commit: "b059c34a"              # latest aeneas main (8-char ref)
+  repo: "https://github.com/AeneasVerif/aeneas.git"
+
+crate:
+  dir: "curve25519-dalek"
+  name: "curve25519_dalek"
+
+charon:
+  # start_from / exclude / opaque are read natively by Charon from
+  # [package.metadata.charon] in curve25519-dalek/Cargo.toml.
+  preset: aeneas
+  # Extract the serial 32-bit backend. The backend is a pure-Rust cfg selection, so
+  # we force it on the normal host build via CARGO_ENCODED_RUSTFLAGS (each entry is
+  # one flag token); no cross-compilation or target triple is needed:
+  #   - backend="serial": the crate otherwise defaults to the x86_64 SIMD/AVX
+  #     backend, whose intrinsics can't be translated.
+  #   - bits="32": selects the u32 backend (FieldElement2625 / Scalar29).
+  # NOTE: Charon's `--targets` (for extracting multiple cfg targets at once) was
+  # tried but is broken on this crate — it corrupts Iterator trait-clause
+  # resolution and emits no LLBC even for a single target — so we extract one
+  # backend per run instead.
+  rustflags:
+    - "--cfg"
+    - 'curve25519_dalek_backend="serial"'
+    - "--cfg"
+    - 'curve25519_dalek_bits="32"'
+  cargo_args:
+    - "--no-default-features"
+    - "--features"
+    - "alloc,zeroize"
+
+aeneas_args:
+  # NOTE: no `loops-to-rec` — we keep the default loop output.
+  # `emit-json` writes translation.json alongside the generated Lean files.
+  options:
+    - split-files
+    - emit-json
+  dest: "curve25519-dalek"        # dest dir; root import file -> curve25519-dalek/translated.lean
+  subdir: "translated"            # output -> curve25519-dalek/translated/, import prefix `translated`
+
+# Post-extraction tweaks applied to generated Lean files.
+# Each substitution is either a literal `find` (all occurrences) or a `regex`,
+# applied IN ORDER. Regex substitutions may reference capture groups with `$1` etc.
+tweaks:
+  files:
+    - "Funs.lean"
+    - "Types.lean"
+  substitutions:
+    # --- Avoid linter complaints ---
+
+    - find: "set_option linter.unusedVariables false"
+      replace: |-
+        set_option linter.unusedVariables false
+        set_option linter.style.whitespace false
+        set_option linter.style.setOption false
+        set_option linter.style.longLine false
+
+    # --- Known Aeneas mistranslation ---
+    # Aeneas emits the `wrapping_shr` shift operand as an i32 literal, but the
+    # model expects a u32 shift amount (Rust's `wrapping_shr(rhs: u32)`), so the
+    # generated call fails to typecheck. Rewrite the shift literal to u32.
+    # Occurs in backend::serial::u32::scalar (Scalar29 montgomery/to_bytes).
+    - regex: '(Std\.U32\.wrapping_shr \w+ \d+)#i32'
+      replace: '$1#u32'

@@ -1,0 +1,29 @@
+name = "curve25519-dalek"
+version = "0.1.0"
+keywords = ["formal verification"]
+defaultTargets = ["translated"]
+
+[leanOptions]
+pp.unicode.fun = true
+autoImplicit = false
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxRecDepth = 10000
+
+# The `rev` MUST be kept in sync with `aeneas.commit` in aeneas-config.yml.
+[[require]]
+name = "aeneas"
+git = "https://github.com/AeneasVerif/aeneas.git"
+subDir = "backends/lean"
+rev = "b059c34a"
+
+# Aeneas-generated Lean translation, living inside the crate at
+# curve25519-dalek/translated/ with root import file curve25519-dalek/translated.lean.
+[[lean_lib]]
+name = "translated"
+srcDir = "curve25519-dalek"
+
+# Hand-written proofs are added later as a sibling library:
+# [[lean_lib]]
+# name = "proofs"
+# srcDir = "curve25519-dalek"
