@@ -1,0 +1,17 @@
+*/target/*
+target
+build*.txt
+*~
+\#*
+.\#*
+*.swp
+*.orig
+*.bak
+
+*.s
+
+.aeneas/
+.lake/
+.logs/
+node_modules/
+*.llbc
