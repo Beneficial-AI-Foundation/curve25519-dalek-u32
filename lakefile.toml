@@ -24,6 +24,6 @@ name = "translated"
 srcDir = "curve25519-dalek"
 
 # Hand-written proofs are added later as a sibling library:
-# [[lean_lib]]
-# name = "proofs"
-# srcDir = "curve25519-dalek"
+[[lean_lib]]
+name = "proofs"
+srcDir = "curve25519-dalek"
