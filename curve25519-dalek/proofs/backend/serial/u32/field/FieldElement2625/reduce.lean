@@ -1,6 +1,6 @@
 import translated.Funs
 import proofs.backend.serial.u32.field.Limbs
-import Mathlib
+import Mathlib.Tactic.IntervalCases
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 
@@ -110,12 +110,6 @@ private theorem div_le_max_div (x : U64) (s : Nat) :
     x.val / 2 ^ s ≤ (2 ^ 64 - 1) / 2 ^ s :=
   Nat.div_le_div_right (by scalar_tac)
 
-/- A masked limb plus an incoming carry quotient stays within its 26-bit budget. -/
-private theorem mask_add_quotient_lt (a b : ℕ) (ha : a < 2 ^ 25) (hb : b < 2 ^ 44) :
-    a + b / 2 ^ 26 < 2 ^ 26 := by
-  have hq : b / 2 ^ 26 < 2 ^ 18 := Nat.div_lt_of_lt_mul (by agrind)
-  agrind
-
 /-- Spec theorem for the interleaved carry pass of `reduce` (carry order: 0,4,1,5,2,6,3,7,4,8). -/
 @[local step]
 theorem reduce_carryChain_spec (z : Array U64 10#usize)
@@ -204,59 +198,23 @@ theorem reduce_foldIn_spec (z : Array U64 10#usize)
 theorem reduce_castsToFE_spec (z : Array U64 10#usize)
     (hbounds : ∀ j, j < 10 → z[j]!.val < 2 ^ 32) :
     reduce_castsToFE z ⦃ (result : FieldElement2625) =>
-      (∀ j, j < 10 → result[j]!.val = z[j]!.val)
-      ∧ result.val = limbsVal z ⦄ := by
+      (∀ j, j < 10 → result[j]!.val = z[j]!.val) ∧ result.val = limbsVal z ⦄ := by
   unfold reduce_castsToFE
   step*
-  refine ⟨?_, ?_⟩
-  · intro j hj
-    simp only [Array.make, Array.getElem!_Nat_eq, *]
-    interval_cases j
-    · simpa using hbounds 0 (by grind)
-    · simpa using hbounds 1 (by grind)
-    · simpa using hbounds 2 (by grind)
-    · simpa using hbounds 3 (by grind)
-    · simpa using hbounds 4 (by grind)
-    · simpa using hbounds 5 (by grind)
-    · simpa using hbounds 6 (by grind)
-    · simpa using hbounds 7 (by grind)
-    · simpa using hbounds 8 (by grind)
-    · simpa using hbounds 9 (by grind)
-  · sorry
-
-
-
-  -- have hFE : Array.make 10#usize [i9, i11, i13, i15, i17, i19, i21, i23, i25, i27]
-  --     = ArrayU64_to_FE z := by
-  --   apply Subtype.ext
-  --   simp only [i9_post, i8_post, i11_post, i10_post, i13_post, i12_post, i15_post,
-  --     i14_post, i17_post, i16_post, i19_post, i18_post, i21_post, i20_post, i23_post,
-  --     i22_post, i25_post, i24_post, i27_post, i26_post, ArrayU64_to_FE,
-  --     Aeneas.Std.Array.val_map, Array.make]
-  --   apply List.ext_getElem
-  --   · simp
-  --   · intro j h1 h2
-  --     rcases j with _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | j
-  --     ·
-
-  --       simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp
-  --     · simp at h1
-  --       agrind
-  -- rw [hFE]
-  -- constructor
-  -- · intro j hj
-  --   rw [ArrayU64_to_FE_getElem! z j hj]
-  --   exact Nat.mod_eq_of_lt (hbounds j hj)
-  -- · exact ArrayU64_to_FE_val z hbounds
+  refine ⟨?pt, limbsVal_congr ?pt⟩
+  intro j hj
+  simp only [Array.make, Array.getElem!_Nat_eq, *]
+  interval_cases j
+  · simpa using hbounds 0 (by grind)
+  · simpa using hbounds 1 (by grind)
+  · simpa using hbounds 2 (by grind)
+  · simpa using hbounds 3 (by grind)
+  · simpa using hbounds 4 (by grind)
+  · simpa using hbounds 5 (by grind)
+  · simpa using hbounds 6 (by grind)
+  · simpa using hbounds 7 (by grind)
+  · simpa using hbounds 8 (by grind)
+  · simpa using hbounds 9 (by grind)
 
 /-! ## Spec theorem for `reduce` -/
 

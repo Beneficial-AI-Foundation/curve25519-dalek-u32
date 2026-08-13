@@ -59,6 +59,13 @@ theorem limbsVal_eq_flat {ty : UScalarTy} (z : Array (UScalar ty) 10#usize) :
       + z[9]!.val * 2 ^ 230 := by
   simp [limbsVal, sum_range_succ, limbWeight, limbBits]
 
+/-- Two limb arrays with pointwise-equal limb values have equal `limbsVal`. -/
+theorem limbsVal_congr {ty ty' : UScalarTy} {x : Array (UScalar ty) 10#usize}
+    {y : Array (UScalar ty') 10#usize} (h : ∀ j, j < 10 → x[j]!.val = y[j]!.val) :
+    limbsVal x = limbsVal y := by
+  unfold limbsVal
+  exact sum_congr rfl fun j hj => by rw [h j (mem_range.mp hj)]
+
 /-- Value of a 10-limb scalar array in the alternating 26/25-bit radix. -/
 def FieldElement2625.val (x : FieldElement2625) : ℕ := limbsVal x
 
@@ -107,24 +114,5 @@ theorem limbsVal_foldin (z z' : Array U64 10#usize)
     (fun j hj hj0 hj9 => by rw [hrest j (mem_range.mp hj) hj0 hj9]) ?_
   rw [h0, h9, show limbWeight 0 = 0 by decide, show limbWeight 9 = 230 by decide]
   exact foldin_pair z[0]!.val z[9]!.val
-
-/-! ## Conversion `Array U64 → FieldElement2625`
-
-The pointwise wrapping cast `reduce` ends with. -/
-
-def ArrayU64_to_FE (z : Array U64 10#usize) : FieldElement2625 :=
-  z.map (UScalar.cast .U32)
-
-theorem ArrayU64_to_FE_getElem! (z : Array U64 10#usize) (j : Nat) (hj : j < 10) :
-    (ArrayU64_to_FE z)[j]!.val = z[j]!.val % 2 ^ 32 := by
-  unfold ArrayU64_to_FE; simp_lists [UScalar.cast_val_eq]; rfl
-
-/-- The casts preserve the represented value once every limb fits in 32 bits. -/
-theorem ArrayU64_to_FE_val (z : Array U64 10#usize) (h : ∀ j, j < 10 → z[j]!.val < 2 ^ 32) :
-    (ArrayU64_to_FE z).val = limbsVal z := by
-  rw [FieldElement2625.val_eq_limbsVal]
-  unfold limbsVal
-  refine sum_congr rfl fun j hj => ?_
-  rw [ArrayU64_to_FE_getElem! z j (mem_range.mp hj), Nat.mod_eq_of_lt (h j (mem_range.mp hj))]
 
 end curve25519_dalek.backend.serial.u32.field
