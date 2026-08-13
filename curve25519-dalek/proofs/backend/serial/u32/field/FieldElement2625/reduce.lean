@@ -50,15 +50,11 @@ private theorem carry_post (z z1 z' : Array U64 10#usize) (i i4 : Usize)
     exact UScalar.val_and_mask _ _ s hi8
   have h9lt : i9.val < 2 ^ s := h9 ▸ Nat.mod_lt _ (by positivity)
   split_conjs
-  · -- masked limb is bounded by its width
-    simp_lists [hz', h9lt]
-  · -- masked limb: z'[i.val]! = z[i.val]! % 2^s
-    simp_lists [hz', h9]
-  · -- untouched limbs
-    intro j hj hji hji1
+  · simp_lists [hz', h9lt]
+  · simp_lists [hz', h9]
+  · intro j hj hji hji1
     simp_lists [hz', hz1, hi4]
-  · -- carried-into limb
-    simp_lists [hz', hz1, hi4, hi6, hi3, Nat.shiftRight_eq_div_pow]
+  · simp_lists [hz', hz1, hi4, hi6, hi3, Nat.shiftRight_eq_div_pow]
 
 /-- Spec theorem for `FieldElement2625::reduce::carry`.
 
@@ -152,8 +148,7 @@ private theorem foldIn_post (z z11 z' : Array U64 10#usize) (i4 i7 : U64)
     intro j hj hj0 hj9
     simp_lists [hz', hz11]
   refine ⟨h0, h9 ▸ Nat.mod_lt _ (by positivity), hrest, ?_⟩
-  sorry
-  -- rw [limbsVal_foldin z z' h0 h9 hrest, Nat.add_mul_mod_self_right]
+  simp [Int.ModEq, limbsVal_foldin z z' h0 h9 hrest,]
 
 /-- Spec theorem for the `×19` fold-in phase of `reduce`. -/
 @[local step]
