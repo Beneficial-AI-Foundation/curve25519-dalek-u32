@@ -35,26 +35,26 @@ theorem reduce.LOW_25_BITS_spec :
 /-! ## Spec theorem for `reduce::carry` -/
 
 /- The post-`step*` argument of `carry_spec`. -/
-private theorem carry_post (z z1 z' : Array U64 10#usize) (i i4 : Usize)
-    (i3 i6 i7 i8 i9 : U64) (s : Nat) (hi : i.val < 9)
-    (hi4 : i4.val = i.val + 1) (hi3 : i3.val = z[i.val]!.val >>> s)
-    (hi6 : i6.val = z[i.val + 1]!.val + i3.val) (hz1 : z1 = z.set i4 i6)
-    (hi7 : i7 = z[i.val]!) (hi8 : i8.val = 2 ^ s - 1)
-    (hi9 : i9.val = (i7 &&& i8).val) (hz' : z' = z1.set i i9) :
-    z'[i.val]!.val < 2 ^ s
-    ∧ z'[i.val]!.val = z[i.val]!.val % 2 ^ s
-    ∧ (∀ j, j < 10 → j ≠ i.val → j ≠ i.val + 1 → z'[j]!.val = z[j]!.val)
-    ∧ z'[i.val + 1]!.val = z[i.val + 1]!.val + z[i.val]!.val / 2 ^ s := by
-  have h9 : i9.val = z[i.val]!.val % 2 ^ s := by
-    rw [hi9, hi7]
-    exact UScalar.val_and_mask _ _ s hi8
-  have h9lt : i9.val < 2 ^ s := h9 ▸ Nat.mod_lt _ (by positivity)
+private theorem carry_post (z₁ z₂ z₃ : Array U64 10#usize) (i i' : Usize)
+    (a a' b mask b' : U64) (s : Nat) (hi : i.val < 9)
+    (hi : i'.val = i.val + 1) (ha : a.val = z₁[i.val]!.val >>> s)
+    (ha' : a'.val = z₁[i.val + 1]!.val + a.val) (hz : z₂ = z₁.set i' a')
+    (hb : b = z₁[i.val]!) (hmask : mask.val = 2 ^ s - 1)
+    (hb' : b'.val = (b &&& mask).val) (hz' : z₃ = z₂.set i b') :
+    z₃[i.val]!.val < 2 ^ s
+    ∧ z₃[i.val]!.val = z₁[i.val]!.val % 2 ^ s
+    ∧ (∀ j, j < 10 → j ≠ i.val → j ≠ i.val + 1 → z₃[j]!.val = z₁[j]!.val)
+    ∧ z₃[i.val + 1]!.val = z₁[i.val + 1]!.val + z₁[i.val]!.val / 2 ^ s := by
+  have h9 : b'.val = z₁[i.val]!.val % 2 ^ s := by
+    rw [hb', hb]
+    exact UScalar.val_and_mask _ _ s hmask
+  have h9lt : b'.val < 2 ^ s := h9 ▸ Nat.mod_lt _ (by positivity)
   split_conjs
   · simp_lists [hz', h9lt]
   · simp_lists [hz', h9]
   · intro j hj hji hji1
-    simp_lists [hz', hz1, hi4]
-  · simp_lists [hz', hz1, hi4, hi6, hi3, Nat.shiftRight_eq_div_pow]
+    simp_lists [hz', hz, hi]
+  · simp_lists [hz', hz, hi, ha', ha, Nat.shiftRight_eq_div_pow]
 
 /-- Spec theorem for `FieldElement2625::reduce::carry`.
 
