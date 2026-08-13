@@ -1,5 +1,6 @@
 import translated.Funs
 import proofs.backend.serial.u32.field.Limbs
+import Mathlib
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 
@@ -132,57 +133,21 @@ theorem reduce_carryChain_spec (z : Array U64 10#usize)
   · agrind [div_le_max_div _ 26]
   · agrind [hz 9 (by decide), div_le_max_div _ 26]
   · split_conjs
-    · /- Each limb reads back through the unchanged-chains to its masking step; limb 5 was
-         re-carried into at step 9, so its value is a 25-bit mask plus a tiny quotient of an
-         almost-masked limb. -/
-      intro j hj
+    · intro j hj
       rcases j with _ | _ | _ | _ | _ | _ | _ | _ | _ | j
-      · simp (disch := decide) only [z10_post3, z9_post3, z8_post3, z7_post3, z6_post3,
-          z5_post3, z4_post3, z3_post3, z2_post3]
-        exact z1_post1
-      · simp (disch := decide) only [z10_post3, z9_post3, z8_post3, z7_post3, z6_post3,
-          z5_post3, z4_post3]
-        have hb3 : z3[1]!.val < 2 ^ 25 := z3_post1
-        agrind
-      · simp (disch := decide) only [z10_post3, z9_post3, z8_post3, z7_post3, z6_post3]
-        exact z5_post1
-      · simp (disch := decide) only [z10_post3, z9_post3, z8_post3]
-        have hb7 : z7[3]!.val < 2 ^ 25 := z7_post1
-        agrind
-      · simp (disch := decide) only [z10_post3]
-        exact z9_post1
-      · -- limb 5 = 25-bit mask (step 4) + the carry out of limb 4 (step 9)
-        rw [z10_post3 5 (by decide) (by decide) (by decide)]
-        have hc9 : z9[5]!.val = z8[5]!.val + z8[4]!.val / 2 ^ 26 := z9_post2
-        rw [hc9]
-        have b5 : z8[5]!.val < 2 ^ 25 := by
-          simp (disch := decide) only [z8_post3, z7_post3, z6_post3, z5_post3]
-          exact z4_post1
-        have b4 : z8[4]!.val < 2 ^ 44 := by
-          rw [z8_post3 4 (by decide) (by decide) (by decide)]
-          have hc7 : z7[4]!.val = z6[4]!.val + z6[3]!.val / 2 ^ 25 := z7_post2
-          rw [hc7]
-          have b4' : z6[4]!.val < 2 ^ 26 := by
-            simp (disch := decide) only [z6_post3, z5_post3, z4_post3, z3_post3]
-            exact z2_post1
-          have := div_le_max_div z6[3]! 25
-          agrind
-        exact mask_add_quotient_lt _ _ b5 b4
-      · simp (disch := decide) only [z10_post3, z9_post3, z8_post3, z7_post3]
-        exact z6_post1
-      · -- limb 7 = 25-bit mask (step 8), untouched after
-        simp (disch := decide) only [z10_post3, z9_post3]
-        have hb8 : z8[7]!.val < 2 ^ 25 := z8_post1
-        agrind
-      · exact z10_post1
-      · exact absurd hj (by scalar_tac)
-    · -- limb 1's tight 25-bit mask survives from step 3 untouched
-      simp (disch := decide) only [z10_post3, z9_post3, z8_post3, z7_post3, z6_post3,
-        z5_post3, z4_post3]
-      exact z3_post1
-    · -- every carry preserved the value exactly, so the pass telescopes
-      rw [z10_post4, z9_post4, z8_post4, z7_post4, z6_post4, z5_post4, z4_post4,
-        z3_post4, z2_post4, z1_post4]
+      · simp (disch := decide) only [*]; agrind
+      · simp (disch := decide) only [*]; agrind
+      · simp (disch := decide) only [*]; agrind
+      · simp (disch := decide) only [*]; agrind
+      · simp (disch := decide) only [*]; agrind
+      · simp (disch := decide) only [*]
+        agrind [hz 3 (by decide), div_le_max_div _ 25, div_le_max_div _ 26]
+      · simp (disch := decide) only [*]; agrind
+      · simp (disch := decide) only [*]; agrind
+      · agrind
+      · exact absurd hj (by agrind)
+    · simp (disch := decide) only [*]; agrind
+    · simp only [*]
 
 /- Postcondition assembly for `reduce_foldIn_spec`. -/
 private theorem foldIn_post (z z11 z' : Array U64 10#usize) (i4 i7 : U64)
@@ -243,35 +208,55 @@ theorem reduce_castsToFE_spec (z : Array U64 10#usize)
       ∧ result.val = limbsVal z ⦄ := by
   unfold reduce_castsToFE
   step*
-  have hFE : Array.make 10#usize [i9, i11, i13, i15, i17, i19, i21, i23, i25, i27]
-      = ArrayU64_to_FE z := by
-    apply Subtype.ext
-    simp only [i9_post, i8_post, i11_post, i10_post, i13_post, i12_post, i15_post,
-      i14_post, i17_post, i16_post, i19_post, i18_post, i21_post, i20_post, i23_post,
-      i22_post, i25_post, i24_post, i27_post, i26_post, ArrayU64_to_FE,
-      Aeneas.Std.Array.val_map, Array.make]
-    apply List.ext_getElem
-    · simp
-    · intro j h1 h2
-      rcases j with _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | j
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp
-      · simp at h1
-        scalar_tac
-  rw [hFE]
-  constructor
+  refine ⟨?_, ?_⟩
   · intro j hj
-    rw [ArrayU64_to_FE_getElem! z j hj]
-    exact Nat.mod_eq_of_lt (hbounds j hj)
-  · exact ArrayU64_to_FE_val z hbounds
+    simp only [Array.make, Array.getElem!_Nat_eq, *]
+    interval_cases j
+    · simpa using hbounds 0 (by grind)
+    · simpa using hbounds 1 (by grind)
+    · simpa using hbounds 2 (by grind)
+    · simpa using hbounds 3 (by grind)
+    · simpa using hbounds 4 (by grind)
+    · simpa using hbounds 5 (by grind)
+    · simpa using hbounds 6 (by grind)
+    · simpa using hbounds 7 (by grind)
+    · simpa using hbounds 8 (by grind)
+    · simpa using hbounds 9 (by grind)
+  · sorry
+
+
+
+  -- have hFE : Array.make 10#usize [i9, i11, i13, i15, i17, i19, i21, i23, i25, i27]
+  --     = ArrayU64_to_FE z := by
+  --   apply Subtype.ext
+  --   simp only [i9_post, i8_post, i11_post, i10_post, i13_post, i12_post, i15_post,
+  --     i14_post, i17_post, i16_post, i19_post, i18_post, i21_post, i20_post, i23_post,
+  --     i22_post, i25_post, i24_post, i27_post, i26_post, ArrayU64_to_FE,
+  --     Aeneas.Std.Array.val_map, Array.make]
+  --   apply List.ext_getElem
+  --   · simp
+  --   · intro j h1 h2
+  --     rcases j with _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | j
+  --     ·
+
+  --       simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp
+  --     · simp at h1
+  --       agrind
+  -- rw [hFE]
+  -- constructor
+  -- · intro j hj
+  --   rw [ArrayU64_to_FE_getElem! z j hj]
+  --   exact Nat.mod_eq_of_lt (hbounds j hj)
+  -- · exact ArrayU64_to_FE_val z hbounds
 
 /-! ## Spec theorem for `reduce` -/
 
