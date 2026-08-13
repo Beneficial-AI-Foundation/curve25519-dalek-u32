@@ -1,7 +1,7 @@
 name = "curve25519-dalek"
 version = "0.1.0"
 keywords = ["formal verification"]
-defaultTargets = ["translated"]
+defaultTargets = ["translated", "proofs"]
 
 [leanOptions]
 pp.unicode.fun = true
