@@ -194,14 +194,12 @@ theorem reduce_foldIn_spec (z : Array U64 10#usize)
   exact foldIn_post z z11 z' i4 i7 hi4 hi7 z11_post z'_post
 
 /-- Spec theorem for the cast phase of `reduce`. -/
-@[local step]
-theorem reduce_castsToFE_spec (z : Array U64 10#usize)
+theorem reduce_castsToFE_spec' (z : Array U64 10#usize)
     (hbounds : ∀ j, j < 10 → z[j]!.val < 2 ^ 32) :
     reduce_castsToFE z ⦃ (result : FieldElement2625) =>
-      (∀ j, j < 10 → result[j]!.val = z[j]!.val) ∧ result.val = limbsVal z ⦄ := by
+      (∀ j, j < 10 → result[j]!.val = z[j]!.val) ⦄ := by
   unfold reduce_castsToFE
   step*
-  refine ⟨?pt, limbsVal_congr ?pt⟩
   intro j hj
   simp only [Array.make, Array.getElem!_Nat_eq, *]
   interval_cases j
@@ -215,6 +213,16 @@ theorem reduce_castsToFE_spec (z : Array U64 10#usize)
   · simpa using hbounds 7 (by grind)
   · simpa using hbounds 8 (by grind)
   · simpa using hbounds 9 (by grind)
+
+/-- Spec theorem for the cast phase of `reduce` with extra postcondition. -/
+@[local step]
+theorem reduce_castsToFE_spec (z : Array U64 10#usize)
+    (hbounds : ∀ j, j < 10 → z[j]!.val < 2 ^ 32) :
+    reduce_castsToFE z ⦃ (result : FieldElement2625) =>
+      (∀ j, j < 10 → result[j]!.val = z[j]!.val) ∧ result.val = limbsVal z ⦄ := by
+  have := reduce_castsToFE_spec'
+  step*
+  exact ⟨‹_›, limbsVal_congr ‹_›⟩
 
 /-! ## Spec theorem for `reduce` -/
 
