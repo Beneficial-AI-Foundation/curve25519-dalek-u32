@@ -40,12 +40,17 @@ private theorem carry_post (z z1 z' : Array U64 10#usize) (i i4 : Usize)
     (hi6 : i6.val = z[i.val + 1]!.val + i3.val) (hz1 : z1 = z.set i4 i6)
     (hi7 : i7 = z[i.val]!) (hi8 : i8.val = 2 ^ s - 1)
     (hi9 : i9.val = (i7 &&& i8).val) (hz' : z' = z1.set i i9) :
-    z'[i.val]!.val = z[i.val]!.val % 2 ^ s
+    z'[i.val]!.val < 2 ^ s
+    ∧ z'[i.val]!.val = z[i.val]!.val % 2 ^ s
     ∧ (∀ j, j < 10 → j ≠ i.val → j ≠ i.val + 1 → z'[j]!.val = z[j]!.val)
     ∧ z'[i.val + 1]!.val = z[i.val + 1]!.val + z[i.val]!.val / 2 ^ s := by
   have h9 : i9.val = z[i.val]!.val % 2 ^ s := by
-    rw [hi9, hi7, UScalar.val_and, hi8, Nat.and_two_pow_sub_one_eq_mod]
+    rw [hi9, hi7]
+    exact UScalar.val_and_mask _ _ s hi8
+  have h9lt : i9.val < 2 ^ s := h9 ▸ Nat.mod_lt _ (by positivity)
   split_conjs
+  · -- masked limb is bounded by its width
+    simp_lists [hz', h9lt]
   · -- masked limb: z'[i.val]! = z[i.val]! % 2^s
     simp_lists [hz', h9]
   · -- untouched limbs
@@ -75,13 +80,12 @@ theorem reduce.carry_spec (z : Array U64 10#usize) (i : Usize) (hi : i.val < 9)
       simp [limbBits, hp] at hover
       simp [Nat.shiftRight_eq_div_pow] at i3_post1
       agrind
-    obtain ⟨c1, c2, c3⟩ := carry_post z z1 z' i i4 i3 i6 i7 i8 i9 (limbBits i.val)
+    obtain ⟨c0, c1, c2, c3⟩ := carry_post z z1 z' i i4 i3 i6 i7 i8 i9 (limbBits i.val)
       hi i4_post (by simp_lists [i3_post1, i2_post]; simp [limbBits, hp])
       (by simp_lists [i6_post, i5_post, i4_post]) z1_post
       (by simp_lists [i7_post, z1_post, i4_post])
       (by simpa [limbBits, hp] using i8_post) i9_post1 z'_post
-    exact ⟨by rw [c1]; exact Nat.mod_lt _ (by positivity), c3, c2,
-      limbsVal_carry z z' i.val hi c1 c3 c2⟩
+    exact ⟨c0, c3, c2, limbsVal_carry z z' i.val hi c1 c3 c2⟩
 
 /- `reduce` splits into three phases:
 - interleaved carry pass,
@@ -258,7 +262,8 @@ theorem reduce_foldIn_spec (z : Array U64 10#usize)
     simp [i4_post, i3_post, i2_post, i1_post1, i_post, Nat.shiftRight_eq_div_pow]
   have hi7 : i7.val = z[9]!.val % 2 ^ 25 := by
     have e5 : i5 = z[9]! := by simp_lists [i5_post, z11_post]
-    bv_tac 64
+    rw [i7_post1, e5]
+    exact UScalar.val_and_mask _ _ 25 i6_post
   exact foldIn_post z z11 z' i4 i7 hi4 hi7 z11_post z'_post
 
 /-- Spec theorem for the cast phase of `reduce`. -/
