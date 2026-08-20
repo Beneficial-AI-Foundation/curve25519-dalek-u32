@@ -58,26 +58,69 @@ end backend.serial.u32.field
 
 namespace backend.serial.u32.field.FieldElement2625
 
-/-# #################################################-/
-/-*Spec theorems for `LOW_26_BITS` and `LOW_25_BITS`*-/
-/-# #################################################-/
+/-# #############################-/
+/-*Spec theorem for `from_limbs`*-/
+/-# #############################-/
+
+theorem from_limbs_spec (l : Array Std.U32 10#usize) :
+    from_limbs l ⦃ (result : Array Std.U32 10#usize) => result = l ⦄ := by
+  unfold from_limbs
+  rfl
+
+/-# ###############################################################-/
+/-*Spec theorems for `LOW_23_BITS`,`LOW_26_BITS` and `LOW_25_BITS`*-/
+/-# ###############################################################-/
 
 @[step]
-theorem LOW_26_BITS_spec :
+theorem from_bytes.LOW_23_BITS_spec :
+    from_bytes.LOW_23_BITS ⦃ (result : U64) => result.bv.toNat = 2^23-1 ⦄ := by
+  unfold from_bytes.LOW_23_BITS
+  rfl
+
+@[step]
+theorem to_bytes.LOW_26_BITS_spec :
+    to_bytes.LOW_26_BITS ⦃ (result : U32) => result.bv.toNat = 2^26-1 ⦄ := by
+  unfold to_bytes.LOW_26_BITS
+  rfl
+
+@[step]
+theorem to_bytes.LOW_25_BITS_spec :
+    to_bytes.LOW_25_BITS ⦃ (result : U32) => result.bv.toNat = 2^25-1 ⦄ := by
+  unfold to_bytes.LOW_25_BITS
+  rfl
+
+@[step]
+theorem reduce.LOW_26_BITS_spec :
     reduce.LOW_26_BITS ⦃ (result : U64) => result.bv.toNat = 2^26-1 ⦄ := by
   unfold reduce.LOW_26_BITS
   rfl
 
 @[step]
-theorem LOW_25_BITS_spec :
+theorem reduce.LOW_25_BITS_spec :
     reduce.LOW_25_BITS ⦃ (result : U64) => result.bv.toNat = 2^25-1 ⦄ := by
   unfold reduce.LOW_25_BITS
   rfl
 
 
-/-# ############################-/
-/-*Spec theorem for `MINUS_ONE`*-/
-/-# ############################-/
+/-# ###############################################-/
+/-*Spec theorems for `ZERO`, `ONE` and `MINUS_ONE`*-/
+/-# ###############################################-/
+
+@[step]
+theorem ZERO_spec :
+    ZERO ⦃ (result : FieldElement2625) => FieldElement2625_to_Nat result = 0 ⦄ := by
+  unfold ZERO from_limbs
+  step*
+  unfold Array.repeat FieldElement2625_to_Nat
+  rfl
+
+@[step]
+theorem ONE_spec :
+    ONE ⦃ (result : FieldElement2625) => FieldElement2625_to_Nat result = 1 ⦄ := by
+  unfold ONE from_limbs
+  step*
+  unfold Array.make FieldElement2625_to_Nat
+  rfl
 
 @[step]
 theorem MINUS_ONE_spec :
@@ -86,6 +129,8 @@ theorem MINUS_ONE_spec :
   step*
   unfold FieldElement2625_to_Nat Array.make
   simp [p_in_decimal]
+
+
 
 
 /-Playing around with `reduce.carry`-/
@@ -553,6 +598,7 @@ private theorem reduce_tail (z z10 : Array U64 10#usize)
    Measured to be the right scale — `reduce` succeeds on all limbs `= 2^64-2^39-1`
    but overflows on `2^64-2^38-1`. It admits every caller; the tightest is
    `square2`, whose limbs reach `2·(77·2^55.5 + 190·2^53.5) ≈ 2^63.46`. -/
+@[step]
 theorem reduce_spec (z : Array U64 10#usize)
     (hz : ∀ j, j < 10 → z[j]!.val ≤ 2 ^ 64 - 2 ^ 40) :
     reduce z ⦃ (result : FieldElement2625) =>
@@ -647,5 +693,431 @@ theorem reduce_spec (z : Array U64 10#usize)
     rw [hs10, hs9, hs8, hs7, hs6, hs5, hs4, hs3, hs2, hs1]
   exact reduce_tail z z10 hL hL1 hsum
 
+
+/-# ######################################-/
+/-*Spec theorem for `from_bytes.load3_at`*-/
+/-# ######################################-/
+
+/-def backend.serial.u32.field.FieldElement2625.from_bytes.load3_at
+  *b is a List Std.U8 with length ≤ 2^64, 0 ≤ i ≤ 2^64*
+  (b : Slice Std.U8) (i : Std.Usize) : Result Std.U64 := do
+  let i1 ← Slice.index_usize b i *=b[i]?*
+  let i2 ← lift (UScalar.cast .U64 i1) *b[i]? with padding 0s to get a U64*
+  let i3 ← i + 1#usize
+  let i4 ← Slice.index_usize b i3 *=b[i+1]?*
+  let i5 ← lift (UScalar.cast .U64 i4) *b[i+1]? with padding 0s to get a U64*
+  let i6 ← i5 <<< 8#i32 *bit shift to the left by 8, i.e. 2^8 · b[i+1]? as U64*
+  let i7 ← lift (i2 ||| i6) *bitwise OR of b[i]? and 2^8 · b[i+1]?,*
+  *since b[i] < 2^8 this is practically b[i]? + 2^8 · b[i+1]?*
+  let i8 ← i + 2#usize
+  let i9 ← Slice.index_usize b i8 *b[i+2]?*
+  let i10 ← lift (UScalar.cast .U64 i9) *b[i+2]? with padding 0s to get a U64*
+  let i11 ← i10 <<< 16#i32 *bit shift to the left by 16, i.e. 2^16 · b[i+2]?*
+  ok (i7 ||| i11) *bitwise OR of (b[i]? + 2^8 · b[i+1]?) and 2^16 · b[i+2]?,*
+  *practically b[i]? + 2^8 · b[i+1]? + 2^16 · b[i+2]?*
+-/
+
+/- Disjoint `|||` is addition: the low operand fits under the shift.
+Core's `Nat.two_pow_add_eq_or_of_lt` states this as `2^k * b + a`; the goals
+coming out of `step*` have the shifted factor on the right. -/
+private theorem lor_mul_two_pow {a b k : Nat} (h : a < 2 ^ k) :
+    a ||| b * 2 ^ k = a + b * 2 ^ k := by
+  rw [Nat.lor_comm, Nat.mul_comm, ← Nat.two_pow_add_eq_or_of_lt h, Nat.add_comm, Nat.mul_comm]
+
+/-Pre: `i.val + 3 ≤ b.length` is the only precondition: it covers the three
+`index_usize` bounds, and the two `Usize` additions follow from it via
+`b.length ≤ Usize.max`. The shifts need nothing, since Aeneas' shift spec
+only requires the shift amount to be below the bit width.
+ Post: the main statement is that 3 consecutive 8-bit numbers multiplied by
+ 2^(8*i), i=0,1,2 and then added, represent the same number as the same bits
+ stacked into a 24-bit representation.
+ Even though it is redundant, a uniform bound on this representation is worth
+ stating here as it will be useful later.-/
+
+@[step]
+theorem from_bytes.load3_at_spec (b : Slice U8) (i : Usize)
+    (hi : i.val + 3 ≤ b.length) :
+    from_bytes.load3_at b i ⦃ (r : U64) =>
+      r.val = b[i.val]!.val + 2 ^ 8 * b[i.val + 1]!.val + 2 ^ 16 * b[i.val + 2]!.val
+      /- Redundant: it follows from the other conjunct. -/
+      ∧ r.val < 2 ^ 24 ⦄ := by
+  unfold from_bytes.load3_at
+  step*
+  /- Bridge the checked indexing of the `step*` hypotheses to the `!` of the goal. -/
+  simp only [i3_post, i8_post] at i4_post i9_post
+  simp_lists
+  rw [← i1_post, ← i4_post, ← i9_post]
+  /- Casts are exact and the shifts stay well below `2^64`, so both `%` vanish. -/
+  simp only [UScalar.val_or, i7_post1, i6_post1, i11_post1, i2_post, i5_post, i10_post,
+    U8.cast_U64_val_eq, Nat.shiftLeft_eq,
+    Nat.mod_eq_of_lt (by scalar_tac : i4.val * 2 ^ 8 < U64.size),
+    Nat.mod_eq_of_lt (by scalar_tac : i9.val * 2 ^ 16 < U64.size)]
+  /- Innermost `|||` first: the explicit `a` stops `rw` matching the outer one. -/
+  rw [lor_mul_two_pow (a := i1.val) (by scalar_tac), lor_mul_two_pow (by scalar_tac)]
+  split_conjs
+  · scalar_tac
+  · scalar_tac
+
+
+/-# ######################################-/
+/-*Spec theorem for `from_bytes.load4_at`*-/
+/-# ######################################-/
+
+/-Same concept as `from_bytes.load3_at` just takes an additional byte.-/
+
+/-Pre: `i.val + 4 ≤ b.length` is the only precondition: it covers the three
+`index_usize` bounds, and the two `Usize` additions follow from it via
+`b.length ≤ Usize.max`. The shifts need nothing, since Aeneas' shift spec
+only requires the shift amount to be below the bit width.
+ Post: the main statement is that 4 consecutive 8-bit numbers multiplied by
+ 2^(8*i), i=0,1,2,3 and then added, represent the same number as the same bits
+ stacked into a 32-bit representation.
+ Even though it is redundant, a uniform bound on this representation is worth
+ stating here as it will be useful later.-/
+
+@[step]
+theorem from_bytes.load4_at_spec (b : Slice U8) (i : Usize)
+    (hi : i.val + 4 ≤ b.length) :
+    from_bytes.load4_at b i ⦃ (r : U64) =>
+      r.val = b[i.val]!.val + 2 ^ 8 * b[i.val + 1]!.val +
+      2 ^ 16 * b[i.val + 2]! + 2 ^ 24 * b[i.val + 3]!.val
+      /- Redundant: it follows from the other conjunct. -/
+      ∧ r.val < 2 ^ 32 ⦄ := by
+  unfold from_bytes.load4_at
+  step*
+  /- Bridge the checked indexing of the `step*` hypotheses to the `!` of the goal. -/
+  simp only [i3_post, i8_post, i13_post] at i4_post i9_post i14_post
+  simp_lists
+  rw [← i1_post, ← i4_post, ← i9_post, ← i14_post]
+  /- Casts are exact and the shifts stay well below `2^64`, so both `%` vanish. -/
+  simp only [UScalar.val_or, i12_post1, i16_post1, i7_post1, i6_post1,
+    i11_post1, i2_post, i5_post, i10_post, i15_post,
+    U8.cast_U64_val_eq, Nat.shiftLeft_eq,
+    Nat.mod_eq_of_lt (by scalar_tac : i4.val * 2 ^ 8 < U64.size),
+    Nat.mod_eq_of_lt (by scalar_tac : i9.val * 2 ^ 16 < U64.size),
+    Nat.mod_eq_of_lt (by scalar_tac : i14.val * 2 ^ 24 < U64.size)]
+  /- Innermost `|||` first: the explicit `a` stops `rw` matching the outer one. -/
+  rw [lor_mul_two_pow (a := i1.val) (by scalar_tac),
+     lor_mul_two_pow (a := i1.val + i4.val * 2^8) (by scalar_tac), lor_mul_two_pow (by scalar_tac)]
+  split_conjs
+  · scalar_tac
+  · scalar_tac
+
+
+/-# #############################-/
+/-*Spec theorem for `from_bytes`*-/
+/-# #############################-/
+
+/-Let's denote elements of data by d[i], which are of type U8.
+h[0] =  load4_at(data,  0); *h[0]=d[0]+2^8·d[1]+2^16·d[2]+2^24·d[3]*
+h[1] =  load3_at(data,  4) << 6; *h[1]=2^6·(d[4]+2^8·d[5]+2^16·d[6])*
+h[2] =  load3_at(data,  7) << 5; *h[2]=2^5·(d[7]+2^8·d[8]+2^16·d[9])*
+h[3] =  load3_at(data, 10) << 3; *h[3]=2^3·(d[10]+2^8·d[11]+2^16·d[12])*
+h[4] =  load3_at(data, 13) << 2; *h[4]=2^2·(d[13]+2^8·d[14]+2^16·d[15])*
+h[5] =  load4_at(data, 16); *h[5]=d[16]+2^8·d[17]+2^16·d[18]+2^24·d[19]*
+h[6] =  load3_at(data, 20) << 7; *h[6]=2^7·(d[20]+2^8·d[21]+2^16·d[22])*
+h[7] =  load3_at(data, 23) << 5; *h[7]=2^5·(d[23]+2^8·d[24]+2^16·d[25])*
+h[8] =  load3_at(data, 26) << 4; *h[8]=2^4·(d[26]+2^8·d[27]+2^16·d[28])*
+h[9] = (load3_at(data, 29) & LOW_23_BITS) << 2; *h[9]=2^2·(d[29]+2^8·d[30]+2^16·d[31] mod 2^23)*
+
+Therefore
+*h[0]=d[0]+2^8·d[1]+2^16·d[2]+2^24·d[3]*
+*2^26·h[1]=2^32·(d[4]+2^8·d[5]+2^16·d[6])*
+*2^51·h[2]=2^56·(d[7]+2^8·d[8]+2^16·d[9])*
+*2^77·h[3]=2^80·(d[10]+2^8·d[11]+2^16·d[12])*
+*2^102·h[4]=2^104·(d[13]+2^8·d[14]+2^16·d[15])*
+*2^128·h[5]=2^128·(d[16]+2^8·d[17]+2^16·d[18]+2^24·d[19])*
+*2^153·h[6]=2^160·(d[20]+2^8·d[21]+2^16·d[22])*
+*2^179·h[7]=2^184·(d[23]+2^8·d[24]+2^16·d[25])*
+*2^204·h[8]=2^208·(d[26]+2^8·d[27]+2^16·d[28])*
+*2^230·h[9]=2^232·(d[29]+2^8·d[30]+2^16·d[31] mod 2^23)*
+
+The last step is why there is the *warning* in the original comment.
+The function from_bytes preserves the Nat representation only if the input is < 2^255.
+Example for when the bound doesn't hold: converting 2^255 into a FieldElement2625.
+Without the masking the result would be a field element
+with Nat representation 19, but instead it gives 0.-/
+def try_1 : Option Nat :=
+  let result := from_bytes (Array.make 32#usize [0#u8,0#u8,0#u8,0#u8,0#u8,
+  0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,
+  0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,0#u8,128#u8])
+  match result with
+  | Result.ok x => some (FieldElement2625_to_Nat x)
+  | _ => none
+
+#eval try_1
+
+/-When `input < 2^255` the Nat representation of the result is correct,
+even when `input > p`.
+Example from original comment: convert 2^255-18 into a FieldElement2625 by applying from_bytes.
+The result as a field element has Nat representation 1.-/
+def try_2 : Nat :=
+  let result := from_bytes (Array.make 32#usize [238#u8,255#u8,255#u8,255#u8,
+  255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,
+  255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,
+  255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,255#u8,127#u8])
+  match result with
+  | Result.ok x => FieldElement2625_to_Nat x
+  | _ => 0
+
+#eval try_2
+#eval try_2 % (2^255-19)
+
+/-Helper function to convert Array U8 32#usize to Nat:-/
+def ArrayU8_to_Nat (a : Array U8 32#usize) : Nat :=
+  a[0]!.val +
+  2^8 * a[1]!.val + 2^16 * a[2]!.val + 2^24 * a[3]!.val +
+  2^32 * a[4]!.val + 2^40 * a[5]!.val + 2^48 * a[6]!.val +
+  2^56 * a[7]!.val + 2^64 * a[8]!.val + 2^72 * a[9]!.val +
+  2^80 * a[10]!.val + 2^88 * a[11]!.val + 2^96 * a[12]!.val +
+  2^104 * a[13]!.val + 2^112 * a[14]!.val + 2^120 * a[15]!.val +
+  2^128 * a[16]!.val + 2^136 * a[17]!.val + 2^144 * a[18]!.val +
+  2^152 * a[19]!.val + 2^160 * a[20]!.val + 2^168 * a[21]!.val +
+  2^176 * a[22]!.val + 2^184 * a[23]!.val + 2^192 * a[24]!.val +
+  2^200 * a[25]!.val + 2^208 * a[26]!.val + 2^216 * a[27]!.val +
+  2^224 * a[28]!.val + 2^232 * a[29]!.val + 2^240 * a[30]!.val +
+  2^248 * a[31]!.val
+
+/-- Helper lemma stating that if all 10 elements of a 10-long array are
+bounded by 2^32 and we update an element by a value `x` of the form
+`x = y <<< m % U64.size` where `y < 2 ^ n` and `n + m ≤ 32`
+then each term of the resulting array is still bounded by 2 ^ 32: -/
+private theorem set_bound {a a' : Array U64 10#usize} {x y : U64} {k : Usize} {n m : Nat}
+(heq : (a' = a.set k x)) (ha : ∀ j, j < 10 → a[j]!.val < 2 ^ 32)
+(hx : x.val = y.val <<< m % U64.size) (hy : y.val < 2 ^ n) (hexp : n + m ≤ 32) :
+    ∀ j, j < 10 → a'[j]!.val < 2^32 :=
+  by
+  intro j hj; subst a'; by_cases j = k.val
+  --The non-trivial case when a'[j] is a[j] replaced by x:
+  case pos =>
+    simp_lists
+    rewrite [hx, Nat.shiftLeft_eq]
+    have hmul := Nat.mul_lt_mul_of_pos_right (k := 2 ^ m) hy (by exact Nat.two_pow_pos m)
+    rewrite [← Nat.pow_add] at hmul
+    rewrite [U64.size_def, U64.numBits_eq, Nat.mod_eq_of_lt (by
+    --Closing the intermediate goal coming from rewriting the mod:
+      exact Nat.lt_of_lt_of_le (k := 2 ^ 64) hmul (by
+        exact Nat.pow_le_pow_of_le (by decide) (by exact Nat.le_trans (k := 64) hexp (by decide))
+        )
+      )]
+    exact Nat.lt_of_lt_of_le (k := 2 ^ 32) hmul (by exact Nat.pow_le_pow_of_le (by decide) hexp )
+  --The simple case when a'[j] = a[j]:
+  case neg =>
+    have h := ha j hj; simp_lists at h ⊢; exact h
+
+/-- Helper lemma that states that if one updates a limb from `0` to `x` in
+an `Array U64 10#usize` representation of a `FieldElement2625` then
+the Nat value of the element increases by `x times the limb's weight`: -/
+private theorem set_zero_to_x {a a' : Array U64 10#usize} {k : Usize} {x : U64} {n : Nat}
+(heq : (a' = a.set k x)) (hindex : k.val < 10) (hzero : a[k.val]!.val = 0)
+(hold_sum : ArrayU64_to_Nat a = n) :
+    ArrayU64_to_Nat a' = n + (↑x) * 2 ^ (26 * ((k.val + 1) / 2) + 25 * (k.val / 2)) :=
+  by
+  rewrite [heq, ← hold_sum]
+  unfold ArrayU64_to_Nat
+  rcases hk : k.val with _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | k.val
+  iterate 10
+    · rewrite [hk] at hzero; rewrite [hzero]; simp_lists; scalar_tac
+  exact absurd hk (by scalar_tac)
+
+
+#exit
+theorem from_bytes_spec (data : Array U8 32#usize) :
+    from_bytes data ⦃ (result : FieldElement2625) =>
+      FieldElement2625_to_Nat result % p = ((ArrayU8_to_Nat data) % 2^255) % p ⦄ := by
+  unfold from_bytes
+  step*
+  /-# Proving that from_bytes.load3_at has the bound for index 29:-/
+  case hi =>
+    rewrite [s9_post]; simp
+  /-# Proving the precondition bound from reduce:-/
+  case hz =>
+  --Introduce and prove the bound i18 < 2 ^ 23:
+    have i18_post : ↑i18 < (2 ^ 23 : Nat) := by
+      rewrite [U64.bv_toNat] at i17_post
+      rewrite [i18_post1]
+      have i17_post1 := Nat.lt_of_le_sub_one (by decide) (Nat.le_of_eq i17_post)
+      exact Nat.lt_of_le_of_lt (Nat.and_le_right) i17_post1
+    --Helper step stating that each element of a constant 0 array is < 2^32:
+    have hinit_bound : ∀ j, j < 10 → (Array.repeat 10#usize 0#u64)[j]!.val < 2^32 := by
+      simp_lists [Array.repeat_val]; decide
+    /-Introducing hypotheses for the two cases, where no bit-shift happens,
+    to be able to use the helper lemma set_bound:-/
+    have i_post : ↑i = ↑i <<< 0 % U64.size := by
+      rewrite [Nat.shiftLeft_zero, U64.val_mod_size_eq]; rfl
+    have i9_post : ↑i9 = ↑i9 <<< 0 % U64.size := by
+      rewrite [Nat.shiftLeft_zero, U64.val_mod_size_eq]; rfl
+    --Renaming the initial hypothesis to fit the general pattern:
+    rename' hinit_bound => b_old
+    --Rolling forward the bounds on the arrays:
+    iterate 10
+      --Step forward and establish the bound on the next array:
+      have b_next := set_bound (by assumption) b_old (by assumption) (by assumption) (by decide)
+      --Clean-up:
+      clear b_old
+      --Rename to be able to iterate the process:
+      rename' b_next => b_old
+    intro j hj
+    have hb_old := b_old j hj
+    apply_rewrite [Nat.le_of_lt] at hb_old
+    exact Nat.le_trans hb_old (by decide)
+  /-# Proving that the result represents the same field element as data % 2^255:-/
+  rewrite [result_post2]
+  unfold ArrayU8_to_Nat
+  --experimenting
+  have hinit_to_Nat : ArrayU64_to_Nat (Array.repeat 10#usize 0#u64) = 0 := by
+    rfl
+  iterate 10
+    have hnext_to_Nat := set_zero_to_x (by assumption) (by decide) (by simp [*]) hinit_to_Nat
+    simp [-Nat.reducePow] at hnext_to_Nat
+    clear hinit_to_Nat
+    rename' hnext_to_Nat => hinit_to_Nat
+  rewrite [hinit_to_Nat]
+  clear hinit_to_Nat
+  --Introduce and prove the bound i18 < 2 ^ 23:
+  have i18_post : ↑i18 < (2 ^ 23 : Nat) := by
+    rewrite [U64.bv_toNat] at i17_post
+    rewrite [i18_post1]
+    have i17_post1 := Nat.lt_of_le_sub_one (by decide) (Nat.le_of_eq i17_post)
+    exact Nat.lt_of_le_of_lt (Nat.and_le_right) i17_post1
+  iterate 8
+    have hmod_kill := (by assumption : _ = _ <<< _ % U64.size)
+    rewrite [hmod_kill, Nat.shiftLeft_eq, Nat.mod_eq_of_lt (b := U64.size) (by
+      rewrite [U64.size_def, U64.numBits_eq]
+      exact Nat.lt_trans (k := 2 ^ 64)
+        (Nat.mul_lt_mul_of_pos_right (k := 2 ^ _) (by assumption) (by decide))
+        (by decide) )]
+    clear hmod_kill
+    clear (by assumption : _ = _ <<< _ % U64.size) --kind of a risky move...
+  rewrite [i18_post1, UScalar.val_and, ← U64.bv_toNat i17, i17_post, Nat.and_two_pow_sub_one_eq_mod]
+  simp [Nat.mul_assoc, ← Nat.mul_mod_mul_right, -Nat.reducePow, ← Nat.pow_add, -p_in_decimal]
+  have hadd_mod_disj_bits : ∀ a b m n : Nat, (a < 2 ^ m) → (m ≤ n) →
+    a + b * 2 ^ m % 2 ^ n = (a + b * 2 ^ m) % 2 ^ n := by
+    intro a b m n ha hexp
+    rewrite [← Nat.mod_eq_of_lt (a := a) (b := 2 ^ n) (by
+      exact Nat.lt_of_lt_of_le (k := 2 ^ n) ha (by
+        exact Nat.pow_le_pow_right (by decide) hexp) )]
+    rewrite [Nat.mod_add_mod, Nat.mod_add_mod_eq]
+    simp
+    nth_rewrite 2 [ ← Nat.pow_sub_mul_pow 2 hexp, Nat.mul_comm]
+    rewrite [Nat.mul_comm, Nat.mul_mod_mul_left]
+    rewrite [Nat.mod_eq_of_lt (a := a) (b := 2 ^ n) (by
+      exact Nat.lt_of_lt_of_le (k := 2 ^ n) ha (by
+        exact Nat.pow_le_pow_right (by decide) (hexp)) )]
+    have hlt_shiftLeft_mod_two_pow : 2 ^ m * (b % 2 ^ (n - m)) ≤ 2 ^ n - 2 ^ m := by
+      nth_rewrite 2 [← Nat.one_mul (2 ^ m)]
+      rewrite [← Nat.pow_sub_mul_pow 2 hexp, ← Nat.mul_sub_right_distrib, Nat.mul_comm]
+      exact Nat.mul_le_mul_right (k := 2 ^ m) (by
+        exact Nat.le_sub_one_of_lt (by
+          exact Nat.mod_lt b (by exact Nat.two_pow_pos (n - m))))
+    rewrite [Nat.add_comm, ← Nat.sub_add_cancel (n := 2 ^ n) (m := 2 ^ m) (by exact Nat.pow_le_pow_right (by decide) hexp)]
+    exact Nat.add_lt_add_of_le_of_lt hlt_shiftLeft_mod_two_pow ha
+  rewrite [hadd_mod_disj_bits _ _ _ _ (by scalar_tac) (by decide)]
+  simp [*, -Nat.reducePow, -p_in_decimal]
+  agrind
+
+
+
+/-# #########################-/
+/-*Spec theorem for `negate`*-/
+/-# #########################-/
+
+/- *p in binary is 255 consecutive 1s minus 18*
+*This leads to i, i4 and i8, which are the limbs for 2^4 · p in the 26/25 radix representation*
+*The function computes -x as 2^4 · p - x to avoid underflow*
+def backend.serial.u32.field.FieldElement2625.negate
+  (self : backend.serial.u32.field.FieldElement2625) :
+  Result backend.serial.u32.field.FieldElement2625
+  := do
+  let i ← 67108845#u32 <<< 4#i32 *67108845 = 2^26-1-18, so i=2^4(2^26-19)*
+  let i1 ← Array.index_usize self 0#usize *=x[0]*
+  let i2 ← i - i1
+  let i3 ← lift (UScalar.cast .U64 i2)
+  let i4 ← 33554431#u32 <<< 4#i32 *33554431 = 2^25-1, so i4=2^4(2^25-1)*
+  let i5 ← Array.index_usize self 1#usize *=x[1]*
+  let i6 ← i4 - i5
+  let i7 ← lift (UScalar.cast .U64 i6)
+  let i8 ← 67108863#u32 <<< 4#i32 *67108863 = 2^26-1, so i8=2^4(2^26-1)*
+  let i9 ← Array.index_usize self 2#usize *=x[2]*
+  let i10 ← i8 - i9
+  let i11 ← lift (UScalar.cast .U64 i10)
+  let i12 ← Array.index_usize self 3#usize *=x[3]*
+  let i13 ← i4 - i12
+  let i14 ← lift (UScalar.cast .U64 i13)
+  let i15 ← Array.index_usize self 4#usize *=x[4]*
+  let i16 ← i8 - i15
+  let i17 ← lift (UScalar.cast .U64 i16)
+  let i18 ← Array.index_usize self 5#usize *=x[5]*
+  let i19 ← i4 - i18
+  let i20 ← lift (UScalar.cast .U64 i19)
+  let i21 ← Array.index_usize self 6#usize *=x[6]*
+  let i22 ← i8 - i21
+  let i23 ← lift (UScalar.cast .U64 i22)
+  let i24 ← Array.index_usize self 7#usize *=x[7]*
+  let i25 ← i4 - i24
+  let i26 ← lift (UScalar.cast .U64 i25)
+  let i27 ← Array.index_usize self 8#usize *=x[8]*
+  let i28 ← i8 - i27
+  let i29 ← lift (UScalar.cast .U64 i28)
+  let i30 ← Array.index_usize self 9#usize *=x[9]*
+  let i31 ← i4 - i30
+  let i32 ← lift (UScalar.cast .U64 i31)
+  *up to this point each limb of x is subtracted from the corresponding limb of 2^4 · p*
+  let neg ←
+    backend.serial.u32.field.FieldElement2625.reduce
+      (Array.make 10#usize [ i3, i7, i11, i14, i17, i20, i23, i26, i29, i32 ])
+  *this step reduces each limb to fit the 26/25 width accordingly*
+  ok neg
+*For the final postcondition we going to need addition of field elements first*
+-/
+
 end backend.serial.u32.field.FieldElement2625
 end curve25519_dalek
+
+/- Adding a low part `a < k` to a multiple of `k` commutes with reduction modulo
+`j * k`: truncating the high part leaves it a multiple of `k`, so it never reaches
+into the range `a` occupies and the two summands still fit below the modulus.
+Stated with the single `%` outermost on the left, so use `←` to push a `%` outwards. -/
+theorem Nat.add_mul_mod_mul_right_of_lt {a b j k : Nat} (ha : a < k) (hj : 0 < j) :
+    (a + b * k) % (j * k) = a + b * k % (j * k) := by
+  have hlt : a + b * k % (j * k) < j * k := by
+    rw [Nat.mul_mod_mul_right]
+    calc a + b % j * k
+        < k + b % j * k := Nat.add_lt_add_right ha _
+      _ = (b % j + 1) * k := by ring
+      _ ≤ j * k := Nat.mul_le_mul_right _ (Nat.mod_lt b hj)
+  have hak : a < j * k := Nat.lt_of_lt_of_le ha (Nat.le_mul_of_pos_left k hj)
+  rw [Nat.add_mod, Nat.mod_eq_of_lt hak, Nat.mod_eq_of_lt hlt]
+
+/- Radix version: a limb below `2 ^ m` plus a multiple of `2 ^ m`, reduced into a
+`2 ^ n` window. Base 2 contributes only the factorisation `2 ^ n = 2 ^ (n-m) * 2 ^ m`;
+positivity of the cofactor is automatic. -/
+theorem Nat.add_mul_two_pow_mod_two_pow_of_lt {a b m n : Nat}
+    (ha : a < 2 ^ m) (hmn : m ≤ n) :
+    (a + b * 2 ^ m) % 2 ^ n = a + b * 2 ^ m % 2 ^ n := by
+  have hsplit : (2:Nat) ^ n = 2 ^ (n - m) * 2 ^ m := by
+    rw [← Nat.pow_add, Nat.sub_add_cancel hmn]
+  rw [hsplit]
+  exact Nat.add_mul_mod_mul_right_of_lt ha (Nat.two_pow_pos _)
+
+/- Original hand-rolled derivation of the radix version, kept for reference:
+  rewrite [← Nat.mod_eq_of_lt (a := a) (b := 2 ^ n) (by
+    exact Nat.lt_of_lt_of_le (k := 2 ^ n) ha (by
+      exact Nat.pow_le_pow_right (by decide) hexp) )]
+  rewrite [Nat.mod_add_mod, Nat.mod_add_mod_eq]
+  simp
+  nth_rewrite 2 [ ← Nat.pow_sub_mul_pow 2 hexp, Nat.mul_comm]
+  rewrite [Nat.mul_comm, Nat.mul_mod_mul_left]
+  rewrite [Nat.mod_eq_of_lt (a := a) (b := 2 ^ n) (by
+    exact Nat.lt_of_lt_of_le (k := 2 ^ n) ha (by
+      exact Nat.pow_le_pow_right (by decide) (hexp)) )]
+  have hlt_shiftLeft_mod_two_pow : 2 ^ m * (b % 2 ^ (n - m)) ≤ 2 ^ n - 2 ^ m := by
+    nth_rewrite 2 [← Nat.one_mul (2 ^ m)]
+    rewrite [← Nat.pow_sub_mul_pow 2 hexp, ← Nat.mul_sub_right_distrib, Nat.mul_comm]
+    exact Nat.mul_le_mul_right (k := 2 ^ m) (by
+      exact Nat.le_sub_one_of_lt (by
+        exact Nat.mod_lt b (by exact Nat.two_pow_pos (n - m))))
+  rewrite [Nat.add_comm, ← Nat.sub_add_cancel (n := 2 ^ n) (m := 2 ^ m) (by
+  exact Nat.pow_le_pow_right (by decide) hexp)]
+  exact Nat.add_lt_add_of_le_of_lt hlt_shiftLeft_mod_two_pow ha
+-/

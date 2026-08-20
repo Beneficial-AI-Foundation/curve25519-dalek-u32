@@ -73,11 +73,11 @@ theorem reduce.carry_spec (z : Array U64 10#usize) (i : Usize) (hi : i.val < 9)
   case inl | inr =>
     step*
     case hmax =>
-      simp_lists [i5_post, i2_post] at hof
+      simp_lists at hof
       simp [limbBits, hp] at hof
       simp [Nat.shiftRight_eq_div_pow] at i3_post1
       agrind
-    obtain ⟨c0, c1, c2, c3⟩ := carry_post z z1 z' i i4 i3 i6 i7 i8 i9 (limbBits i.val)
+    let ⟨c0, c1, c2, c3⟩ := carry_post z z1 z' i i4 i3 i6 i7 i8 i9 (limbBits i.val)
       hi i4_post (by simp_lists [i3_post1, i2_post]; simp [limbBits, hp])
       (by simp_lists [i6_post, i5_post, i4_post]) z1_post
       (by simp_lists [i7_post, z1_post, i4_post])
@@ -104,10 +104,10 @@ private theorem div_le_max_div (x : U64) (s : Nat) :
 @[local step]
 theorem reduce_carryChain_spec (z : Array U64 10#usize)
     (hz : ∀ j, j < 10 → z[j]!.val ≤ 2 ^ 64 - 2 ^ 40) :
-    reduce_carryChain z ⦃ (z10 : Array U64 10#usize) =>
-      (∀ j < 9, z10[j]!.val < 2 ^ 26)
-      ∧ z10[1]!.val < 2 ^ 25
-      ∧ limbsVal z10 = limbsVal z ⦄ := by
+    reduce_carryChain z ⦃ (result : Array U64 10#usize) =>
+      (∀ j < 9, result[j]!.val < 2 ^ 26)
+      ∧ result[1]!.val < 2 ^ 25
+      ∧ limbsVal result = limbsVal z ⦄ := by
   unfold reduce_carryChain
   step*
   · agrind [hz 3 (by decide), div_le_max_div _ 26]

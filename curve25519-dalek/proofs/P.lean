@@ -12,6 +12,10 @@ namespace curve25519_dalek
 /-- The prime of the field `ℤ / (2^255 - 19)`. -/
 def p : ℕ := 2 ^ 255 - 19
 
+/-Helper theorem to avoid resolving p in decimal format.-/
+theorem p_in_decimal :
+(p = 57896044618658097711785492504343953926634992332820282019728792003956564819949) := by simp [p]
+
 theorem p_add_19 : p + 19 = 2 ^ 255 := by norm_num [p]
 
 theorem p_pos : 0 < p := by norm_num [p]
