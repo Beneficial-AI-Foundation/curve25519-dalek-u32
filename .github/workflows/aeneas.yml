@@ -5,7 +5,6 @@ on:
   push:
     branches: [ 'main' ]
     paths:
-      - 'curve25519-dalek/translated/**'
       - 'lakefile.toml'
       - 'lean-toolchain'
       - '.github/workflows/aeneas.yml'
