@@ -52,8 +52,8 @@ jobs:
 
       - name: Lint hand-written code
         run: |
-          # Lint ONLY the hand-written `Spqr` library.
-          lake exe runLinter Spqr 2>&1 | tee /tmp/lake-lint.log || true
+          # Lint ONLY the hand-written `Dalek32` library.
+          lake exe runLinter Dalek32 2>&1 | tee /tmp/lake-lint.log || true
           if grep -q 'error:' /tmp/lake-lint.log; then
             echo "::error::Lint errors in hand-written code. Please fix them."
             grep 'error:' /tmp/lake-lint.log

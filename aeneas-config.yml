@@ -4,7 +4,7 @@
 # The `rev` in lakefile.toml MUST be kept in sync with `aeneas.commit` below.
 
 aeneas:
-  commit: "b059c34a"              # latest aeneas main (8-char ref)
+  commit: "5d08da4"              # latest aeneas main (8-char ref)
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
 upstream:

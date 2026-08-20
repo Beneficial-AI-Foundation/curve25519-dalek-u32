@@ -1,7 +1,7 @@
 name = "curve25519-dalek"
 version = "0.1.0"
 keywords = ["formal verification"]
-defaultTargets = ["translated"]
+defaultTargets = ["Dalek32", "translated"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -15,13 +15,21 @@ maxRecDepth = 10000
 name = "aeneas"
 git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
-rev = "b059c34a"
+rev = "5d08da4"
+
+# Slightly modified copy of Mathlib's header linter (`linter.style.headerAlt`).  Pending the upstream
+# PR which adds a config option and then this will be removed from here.
+[[lean_lib]]
+name = "HeaderLinter"
 
 # Aeneas-generated Lean translation, living inside the crate at
 # curve25519-dalek/translated/ with root import file curve25519-dalek/translated.lean.
 [[lean_lib]]
 name = "translated"
 srcDir = "curve25519-dalek"
+
+[[lean_lib]]
+name = "Dalek32"
 
 # Hand-written proofs are added later as a sibling library:
 # [[lean_lib]]
