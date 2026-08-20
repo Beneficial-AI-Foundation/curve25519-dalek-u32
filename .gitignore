@@ -15,3 +15,4 @@ build*.txt
 .logs/
 node_modules/
 *.llbc
+.tmp/

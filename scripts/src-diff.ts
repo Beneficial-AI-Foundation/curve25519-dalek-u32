@@ -1,160 +1,192 @@
+#!/usr/bin/env node
 /**
- * Generate diff between upstream SparsePostQuantumRatchet source and local modified version.
+ * Generate diff between original curve25519-dalek source and modified version
  *
- * 1. Clones the upstream repo as a bare repository
- * 2. Extracts src/ at the pinned commit via git archive
- * 3. Diffs against local src/
- * 4. Saves to src-modifications.diff with metadata header
+ * This script:
+ * 1. Clones the original curve25519-dalek repo
+ * 2. Checks out the specific commit used in this project
+ * 3. Compares curve25519-dalek/src from original with local version
+ * 4. Saves the diff to MODIFICATIONS.diff
  */
 
-import { execSync } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import chalk from "chalk";
-import { loadConfig } from "./lib/config.js";
+import { execSync } from 'child_process'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-function exec(cmd: string, opts: { allowFail?: boolean; cwd?: string } = {}): string {
-  try {
-    return execSync(cmd, { encoding: "utf-8", stdio: "pipe", cwd: opts.cwd });
-  } catch (error) {
-    if (!opts.allowFail) throw error;
-    const err = error as { stdout?: string; stderr?: string };
-    return err.stdout ?? err.stderr ?? "";
-  }
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Configuration from CONTRIBUTING.md
+const UPSTREAM_REPO = 'https://github.com/dalek-cryptography/curve25519-dalek'
+const UPSTREAM_COMMIT = '8016d6d9b9cdbaa681f24147e0b9377cc8cef934'
+const UPSTREAM_TAG = 'curve25519-4.2.0'
+
+// Paths
+const SCRIPT_DIR = __dirname
+const REPO_ROOT = path.join(SCRIPT_DIR, '..')
+const TEMP_DIR = path.join(REPO_ROOT, '.tmp')
+const UPSTREAM_CLONE = path.join(TEMP_DIR, 'curve25519-dalek-upstream')
+const LOCAL_SRC = path.join(REPO_ROOT, 'curve25519-dalek', 'src')
+const OUTPUT_DIFF = path.join(REPO_ROOT, 'src-modifications.diff')
+
+function run(cmd, options = {}) {
+    console.log(`  $ ${cmd}`)
+    try {
+        return execSync(cmd, {
+            encoding: 'utf8',
+            stdio: options.quiet ? 'pipe' : 'inherit',
+            ...options
+        })
+    } catch (error) {
+        if (!options.allowFail) {
+            throw error
+        }
+        // If allowFail is true, return stdout/stderr from the error
+        // (e.g., diff returns exit code 1 when there are differences, but we still want the output)
+        return error.stdout || error.stderr || null
+    }
 }
 
-function ensureUpstreamRepo(tmpDir: string, upstreamRepo: string, cloneDir: string): void {
-  console.log(chalk.bold("\nCloning upstream repository..."));
+function ensureUpstreamRepo() {
+    console.log('\n📦 Cloning upstream repository...')
 
-  if (fs.existsSync(cloneDir)) {
-    fs.rmSync(cloneDir, { recursive: true, force: true });
-  }
+    // Remove existing clone if present
+    if (fs.existsSync(UPSTREAM_CLONE)) {
+        console.log('  Removing existing clone...')
+        fs.rmSync(UPSTREAM_CLONE, { recursive: true, force: true })
+    }
 
-  fs.mkdirSync(tmpDir, { recursive: true });
+    if (!fs.existsSync(TEMP_DIR)) {
+        fs.mkdirSync(TEMP_DIR, { recursive: true })
+    }
 
-  console.log(`  Cloning ${upstreamRepo}...`);
-  exec(`git clone --bare "${upstreamRepo}" "${cloneDir}"`);
-  console.log(chalk.green("  Cloned successfully"));
+    console.log(`  Cloning ${UPSTREAM_REPO}...`)
+    run(`git clone --bare "${UPSTREAM_REPO}" "${UPSTREAM_CLONE}"`, { quiet: true })
+    console.log('  ✓ Cloned successfully')
 }
 
-function extractUpstreamSource(cloneDir: string, commit: string, extractDir: string): string {
-  console.log(chalk.bold(`\nExtracting source at commit ${commit.substring(0, 8)}...`));
+function extractUpstreamSource() {
+    console.log(`\n📋 Extracting source at commit ${UPSTREAM_COMMIT.substring(0, 8)}...`)
 
-  if (fs.existsSync(extractDir)) {
-    fs.rmSync(extractDir, { recursive: true, force: true });
-  }
-  fs.mkdirSync(extractDir, { recursive: true });
+    const extractDir = path.join(TEMP_DIR, 'extracted-src')
 
-  exec(`git -C "${cloneDir}" archive ${commit} src | tar -x -C "${extractDir}"`);
-  console.log(chalk.green("  Extracted successfully"));
-  return path.join(extractDir, "src");
+    // Remove old extraction
+    if (fs.existsSync(extractDir)) {
+        fs.rmSync(extractDir, { recursive: true, force: true })
+    }
+    fs.mkdirSync(extractDir, { recursive: true })
+
+    // Extract the curve25519-dalek/src directory at the specific commit using git archive
+    console.log('  Extracting curve25519-dalek/src/ directory...')
+    run(`git -C "${UPSTREAM_CLONE}" archive ${UPSTREAM_COMMIT} curve25519-dalek/src | tar -x -C "${extractDir}"`,
+        { quiet: true, shell: '/bin/bash' })
+
+    console.log('  ✓ Extracted successfully')
+
+    return path.join(extractDir, 'curve25519-dalek', 'src')
 }
 
-function generateDiff(upstreamSrc: string, localSrc: string, upstreamRepo: string, upstreamCommit: string): string | null {
-  console.log(chalk.bold("\nGenerating diff..."));
+function generateDiff(upstreamSrc, localSrc) {
+    console.log('\n🔍 Generating diff...')
 
-  const escapedUpstream = upstreamSrc.replace(/[/&]/g, "\\$&");
-  const escapedLocal = localSrc.replace(/[/&]/g, "\\$&");
+    // Escape paths for sed regex
+    const escapedUpstream = upstreamSrc.replace(/[\/&]/g, '\\$&')
+    const escapedLocal = localSrc.replace(/[\/&]/g, '\\$&')
 
-  // Generate unified diff with normalized paths and no timestamps
-  const diffOutput = exec(
-    `diff -Naur --no-dereference "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/src|g' -e 's|${escapedLocal}|b/src|g'`,
-    { allowFail: true },
-  );
+    // Generate unified diff and normalize paths/timestamps for reproducibility
+    // 1. Remove timestamps (tab followed by date/time)
+    // 2. Replace absolute upstream path with a/curve25519-dalek/src
+    // 3. Replace absolute local path with b/curve25519-dalek/src
+    const diffOutput = run(
+        `diff -Naur --no-dereference "${upstreamSrc}" "${localSrc}" | sed -e 's/\\t[0-9][0-9][0-9][0-9]-.*//g' -e 's|${escapedUpstream}|a/curve25519-dalek/src|g' -e 's|${escapedLocal}|b/curve25519-dalek/src|g'`,
+        { quiet: true, allowFail: true, stdio: 'pipe', shell: '/bin/bash' }
+    )
 
-  if (!diffOutput || diffOutput.trim() === "") {
-    console.log("  No differences found");
-    return null;
-  }
+    if (!diffOutput || diffOutput.trim() === '') {
+        console.log('  ℹ️  No differences found')
+        return null
+    }
 
-  const header = `# Modifications to SparsePostQuantumRatchet source code
+    // Add header to diff
+    const header = `# Modifications to curve25519-dalek source code
 
-This file contains the diff between the original upstream source
+This file contains the diff between the original curve25519-dalek source
 and the modified version used in this verification project.
 
-Upstream Repository: ${upstreamRepo}
-Upstream Commit: ${upstreamCommit}
+- **Upstream Repository**: ${UPSTREAM_REPO}
+- **Upstream Commit**: ${UPSTREAM_COMMIT}
+- **Upstream Tag**: ${UPSTREAM_TAG}
 
 ---
 
-`;
+`
 
-  return header + diffOutput;
+    return header + diffOutput
 }
 
-function saveDiff(diff: string | null, outputPath: string, upstreamCommit: string): void {
-  if (!diff) {
-    console.log(chalk.green("\nNo modifications detected - source matches upstream"));
+function saveDiff(diff) {
+    if (!diff) {
+        console.log('\n✨ No modifications detected - source matches upstream')
 
-    const note = `# No Modifications
+        // Create a note file instead
+        const note = `# No Modifications
 
-The src/ directory matches the upstream source exactly.
+The curve25519-dalek/src directory matches the upstream source exactly.
 
-Upstream Commit: ${upstreamCommit}
-`;
-    fs.writeFileSync(outputPath, note);
-    console.log(`  Note saved to ${path.basename(outputPath)}`);
-    return;
-  }
+- **Upstream Commit**: ${UPSTREAM_COMMIT}
+- **Checked**: ${new Date().toISOString()}
+`
+        fs.writeFileSync(OUTPUT_DIFF, note)
+        console.log(`  ✓ Note saved to ${path.basename(OUTPUT_DIFF)}`)
+        return
+    }
 
-  fs.writeFileSync(outputPath, diff);
-  console.log(chalk.green(`\nDiff saved to ${path.basename(outputPath)}`));
+    fs.writeFileSync(OUTPUT_DIFF, diff)
+    console.log(`\n✅ Diff saved to ${path.basename(OUTPUT_DIFF)}`)
 
-  // Count changes only in the diff body (lines starting after the header)
-  const diffBody = diff.substring(diff.indexOf("---\n\n") + 5);
-  const lines = diffBody.split("\n");
-  const added = lines.filter((l) => l.startsWith("+") && !l.startsWith("+++")).length;
-  const removed = lines.filter((l) => l.startsWith("-") && !l.startsWith("---")).length;
+    // Count lines of changes
+    const lines = diff.split('\n')
+    const added = lines.filter(l => l.startsWith('+')).length
+    const removed = lines.filter(l => l.startsWith('-')).length
 
-  console.log(`   Lines added:   ${added}`);
-  console.log(`   Lines removed: ${removed}`);
+    console.log(`   Lines added:   ${added}`)
+    console.log(`   Lines removed: ${removed}`)
 }
 
-function cleanup(extractDir: string): void {
-  if (fs.existsSync(extractDir)) {
-    fs.rmSync(extractDir, { recursive: true, force: true });
-  }
+function cleanup() {
+    console.log('\n🧹 Cleaning up...')
+    const extractDir = path.join(TEMP_DIR, 'extracted-src')
+    if (fs.existsSync(extractDir)) {
+        fs.rmSync(extractDir, { recursive: true, force: true })
+        console.log('  ✓ Cleaned up temporary files')
+    }
 }
 
-function main(): void {
-  console.log(chalk.bold("SparsePostQuantumRatchet Source Modification Diff Generator"));
+function main() {
+    console.log('═══════════════════════════════════════════════════════')
+    console.log('  curve25519-dalek Modification Diff Generator')
+    console.log('═══════════════════════════════════════════════════════')
 
-  const { config, root } = loadConfig();
+    try {
+        ensureUpstreamRepo()
+        const upstreamSrc = extractUpstreamSource()
+        const diff = generateDiff(upstreamSrc, LOCAL_SRC)
+        saveDiff(diff)
+        cleanup()
 
-  if (!config.upstream.repo || !config.upstream.commit) {
-    throw new Error("Missing upstream.repo or upstream.commit in aeneas-config.yml");
-  }
-
-  const upstreamRepo = config.upstream.repo;
-  const upstreamCommit = config.upstream.commit;
-  const localSrc = path.join(root, "src");
-
-  if (!fs.existsSync(localSrc)) {
-    throw new Error(`Local src/ directory not found at ${localSrc}`);
-  }
-
-  const tmpDir = path.join(root, ".tmp");
-  const cloneDir = path.join(tmpDir, "upstream");
-  const extractDir = path.join(tmpDir, "extracted-src");
-  const outputPath = path.join(root, "src-modifications.diff");
-
-  try {
-    ensureUpstreamRepo(tmpDir, upstreamRepo, cloneDir);
-    const upstreamSrc = extractUpstreamSource(cloneDir, upstreamCommit, extractDir);
-    const diff = generateDiff(upstreamSrc, localSrc, upstreamRepo, upstreamCommit);
-    saveDiff(diff, outputPath, upstreamCommit);
-    cleanup(extractDir);
-
-    console.log(chalk.green("\nDone."));
-  } catch (err) {
-    cleanup(extractDir);
-    throw err;
-  }
+        console.log('\n✨ Done!')
+        console.log(`\nTo view the diff: cat ${path.basename(OUTPUT_DIFF)}`)
+    } catch (error) {
+        console.error('\n❌ Error:', error.message)
+        cleanup()
+        process.exit(1)
+    }
 }
 
-try {
-  main();
-} catch (err) {
-  console.error(chalk.red(`\nError: ${(err as Error).message}`));
-  process.exit(1);
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    main()
 }
+
+export { main }

@@ -7,6 +7,10 @@ aeneas:
   commit: "b059c34a"              # latest aeneas main (8-char ref)
   repo: "https://github.com/AeneasVerif/aeneas.git"
 
+upstream:
+  repo: "https://github.com/dalek-cryptography/curve25519-dalek"
+  commit: "8016d6d9b9cdbaa681f24147e0b9377cc8cef934"
+
 crate:
   dir: "curve25519-dalek"
   name: "curve25519_dalek"
