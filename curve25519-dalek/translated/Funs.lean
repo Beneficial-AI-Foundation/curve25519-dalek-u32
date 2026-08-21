@@ -3077,18 +3077,16 @@ def backend.serial.u32.scalar.Scalar29.from_bytes_wide
     backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexMutUsizeU32.index_mut
       hi6 7#usize
   let i79 ← lift (i78 &&& mask)
-  let i80 ← lift (IScalar.hcast .U32 13#i32)
-  massert (i80 < 32#u32)
+  let i80 ← i76 >>> 13#i32
   let hi7 := index_mut_back15 i79
   let (_, index_mut_back16) ←
     backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexMutUsizeU32.index_mut
       hi7 8#usize
-  let i81 ← lift (Std.U32.wrapping_shr i76 13#u32)
   let lo8 := index_mut_back8 i42
   let lo9 ←
     backend.serial.u32.scalar.Scalar29.montgomery_mul lo8
       backend.serial.u32.constants.R
-  let hi8 := index_mut_back16 i81
+  let hi8 := index_mut_back16 i80
   let hi9 ←
     backend.serial.u32.scalar.Scalar29.montgomery_mul hi8
       backend.serial.u32.constants.RR
