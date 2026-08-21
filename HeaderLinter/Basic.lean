@@ -19,7 +19,7 @@ configuration option, so this project can reference `LICENSE-APACHE` (or any oth
 It exists because that one line is not yet configurable in the released Mathlib.  A
 backward-compatible pull request adding the same option upstream is tracked in
 `mathlib-pr-plan.md`; once it lands and the toolchain picks it up, this file (and its import in
-`Spqr.Lint.Basic`) should be deleted and `linter.style.header` re-enabled with
+`Dalek32.Lint.Basic`) should be deleted and `linter.style.header` re-enabled with
 `linter.style.header.license` set — see the note in `lakefile.toml`.
 
 ## Deviations from the upstream file
@@ -33,7 +33,7 @@ backward-compatible pull request adding the same option upstream is tracked in
 * the two decls we do not copy — `directoryDependencyCheck` and the `linter.directoryDependency`
   option — are referenced with an explicit `Mathlib.Linter.` prefix;
 * module-system markers (`module`, `meta`, `public`) are dropped to match the repo's other
-  `Spqr.Lint` files.
+  `Dalek32.Lint` files.
 
 The upstream documentation of the checks follows.
 
