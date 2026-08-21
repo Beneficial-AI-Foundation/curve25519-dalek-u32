@@ -4,14 +4,14 @@ Axiom audit and sorry-manifest generator.
 Usage:
   lake env lean scripts/Audit.lean
 
-Scans all `Spqr.*` modules reachable via `import Spqr` (i.e. those
+Scans all `Dalek32.*` modules reachable via `import Dalek32` (i.e. those
 already part of the build), then for each theorem/def/opaque/axiom it
 collects the transitive axiom closure and reports non-builtin ones.
 
-Any `Spqr.*` module not imported by the root `Spqr` module will not be
-scanned.  Ensure new modules are re-exported from `Spqr.lean`.
+Any `Dalek32.*` module not imported by the root `Dalek32` module will not be
+scanned.  Ensure new modules are re-exported from `Dalek32.lean`.
 
-Section 1 focuses on `Spqr.Specs.*` (hand-written proofs).
+Section 1 focuses on `Dalek32.Specs.*` (hand-written proofs).
 Section 2 traces how `sorry` reaches specs theorems.
 Section 3 gives a full project summary.
 Section 4 writes `sorry-manifest.txt` (machine-readable, one line per
@@ -38,10 +38,10 @@ run_cmd liftTermElabM do
   let mut specsModuleNames : Array Name := #[]
   for h : i in [:moduleNames.size] do
     let m := moduleNames[i]
-    if m.getRoot == `Spqr || m.getRoot == `SrcTranslated then
+    if m.getRoot == `Dalek32 || m.getRoot == `translated then
       projectModuleIdxs := projectModuleIdxs.insert i
       projectModuleNames := projectModuleNames.push m
-      if m.toString.startsWith "Spqr.Specs" then
+      if m.toString.startsWith "Dalek32.Specs" then
         specsModuleIdxs := specsModuleIdxs.insert i
         specsModuleNames := specsModuleNames.push m
 
@@ -95,9 +95,9 @@ run_cmd liftTermElabM do
   -- ── SECTION 1: Hand-written specs ─────────────────────────────────────
 
   logInfo m!"\n╔══════════════════════════════════════════════════════╗"
-  logInfo m!"║  SECTION 1: Hand-written specs (Spqr.Specs.*)        ║"
+  logInfo m!"║  SECTION 1: Hand-written specs (Dalek32.Specs.*)        ║"
   logInfo m!"╚══════════════════════════════════════════════════════╝"
-  logInfo m!"Theorems+axioms in Spqr.Specs.*: {specsThms.size}"
+  logInfo m!"Theorems+axioms in Dalek32.Specs.*: {specsThms.size}"
 
   let mut specsSorry := false
   let mut specsTrust := false
@@ -211,7 +211,7 @@ run_cmd liftTermElabM do
   -- ── SECTION 3: Full project summary ───────────────────────────────────
 
   logInfo m!"\n╔══════════════════════════════════════════════════════╗"
-  logInfo m!"║  SECTION 3: Full project summary (Spqr.*)            ║"
+  logInfo m!"║  SECTION 3: Full project summary (Dalek32.*)            ║"
   logInfo m!"╚══════════════════════════════════════════════════════╝"
 
   let mut projSorry := false
