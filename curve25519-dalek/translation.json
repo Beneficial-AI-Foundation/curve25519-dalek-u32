@@ -1,6 +1,6 @@
 {
-  "aeneas_version": "b059c34a",
-  "charon_version": "0.1.223",
+  "aeneas_version": "5d08da45",
+  "charon_version": "0.1.235",
   "crate": "curve25519_dalek",
   "functions": [
     {

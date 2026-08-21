@@ -7,7 +7,9 @@
   "scripts": {
     "aeneas-install": "tsx scripts/aeneas-install.ts",
     "aeneas-extract": "tsx scripts/aeneas-extract.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "src-diff": "tsx scripts/src-diff.ts",
+    "verification-status": "lake exe status"
   },
   "dependencies": {
     "chalk": "^5.4.0",

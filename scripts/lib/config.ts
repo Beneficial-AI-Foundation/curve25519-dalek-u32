@@ -20,16 +20,12 @@ export interface AeneasConfig {
   charon: {
     preset: string;
     package?: string;
-    /** Extra rustc flags (e.g. cfg overrides) passed to the charon build via
-     *  CARGO_ENCODED_RUSTFLAGS. Each entry is one flag token. */
-    rustflags: string[];
+    pinned_deps: Record<string, string>;
     cargo_args: string[];
   };
   aeneas_args: {
     options: string[];
     dest: string;
-    /** Optional sub-directory under `dest`; becomes the Lean import-path prefix. */
-    subdir?: string;
   };
   tweaks: {
     files: string[];
@@ -80,7 +76,7 @@ export function loadConfig(root?: string): { config: AeneasConfig; root: string 
   // Apply defaults
   config.charon = config.charon ?? {} as AeneasConfig["charon"];
   config.charon.preset = config.charon.preset ?? "aeneas";
-  config.charon.rustflags = config.charon.rustflags ?? [];
+  config.charon.pinned_deps = config.charon.pinned_deps ?? {};
   config.charon.cargo_args = config.charon.cargo_args ?? [];
   config.aeneas_args = config.aeneas_args ?? {} as AeneasConfig["aeneas_args"];
   config.aeneas_args.options = config.aeneas_args.options ?? [];

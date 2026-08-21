@@ -67,7 +67,7 @@ async function getInstalledVersion(root: string): Promise<string | null> {
 
 async function checkDependencies(): Promise<void> {
   const spinner = ora("Checking dependencies...").start();
-  const deps = ["git", "opam", "make", "rustup"];
+  const deps = ["git", "opam", "gmake", "rustup"];
   const missing: string[] = [];
 
   for (const dep of deps) {
@@ -102,7 +102,7 @@ async function getOpamEnv(switchName: string): Promise<Record<string, string>> {
 }
 
 const OCAML_DEPS = [
-  "ppx_deriving", "visitors", "easy_logging", "zarith", "yojson",
+  "ppx_deriving", "ppx_deriving_yojson", "visitors", "easy_logging", "zarith", "yojson",
   "core_unix", "odoc", "ocamlgraph", "menhir", "ocamlformat",
   "unionFind", "domainslib", "progress",
 ];
@@ -167,13 +167,13 @@ async function setupRepo(repo: string, repoDir: string, commit: string): Promise
 
 async function buildCharon(repoDir: string, env: Record<string, string>): Promise<void> {
   const spinner = ora("Building Charon...").start();
-  await runStreaming("make", ["setup-charon"], { cwd: repoDir, env });
+  await runStreaming("gmake", ["setup-charon"], { cwd: repoDir, env });
   spinner.succeed("Charon built");
 }
 
 async function buildAeneas(repoDir: string, env: Record<string, string>): Promise<void> {
   const spinner = ora("Building Aeneas...").start();
-  await runStreaming("make", [], { cwd: repoDir, env });
+  await runStreaming("gmake", [], { cwd: repoDir, env });
   spinner.succeed("Aeneas built");
 }
 

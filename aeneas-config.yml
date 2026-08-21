@@ -4,8 +4,12 @@
 # The `rev` in lakefile.toml MUST be kept in sync with `aeneas.commit` below.
 
 aeneas:
-  commit: "b059c34a"              # latest aeneas main (8-char ref)
+  commit: "5d08da4"              # latest aeneas main (8-char ref)
   repo: "https://github.com/AeneasVerif/aeneas.git"
+
+upstream:
+  repo: "https://github.com/dalek-cryptography/curve25519-dalek"
+  commit: "8016d6d9b9cdbaa681f24147e0b9377cc8cef934"
 
 crate:
   dir: "curve25519-dalek"
@@ -60,11 +64,3 @@ tweaks:
         set_option linter.style.whitespace false
         set_option linter.style.setOption false
         set_option linter.style.longLine false
-
-    # --- Known Aeneas mistranslation ---
-    # Aeneas emits the `wrapping_shr` shift operand as an i32 literal, but the
-    # model expects a u32 shift amount (Rust's `wrapping_shr(rhs: u32)`), so the
-    # generated call fails to typecheck. Rewrite the shift literal to u32.
-    # Occurs in backend::serial::u32::scalar (Scalar29 montgomery/to_bytes).
-    - regex: '(Std\.U32\.wrapping_shr \w+ \d+)#i32'
-      replace: '$1#u32'
