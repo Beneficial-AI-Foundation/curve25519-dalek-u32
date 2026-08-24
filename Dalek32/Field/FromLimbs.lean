@@ -1,11 +1,9 @@
 /-
 Copyright (c) 2026 The Beneficial AI Foundation. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE-APACHE.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: András Némedy Varga
 -/
 import translated.Funs
-open Aeneas Aeneas.Std
-namespace curve25519_dalek.backend.serial.u32.field.FieldElement2625
 
 /-!
 # Spec theorem for `from_limbs`
@@ -15,6 +13,9 @@ applying the `ok` constructor to the input array. It is essentially just a type 
 
 Source: "curve25519-dalek/src/backend/serial/u32/field.rs", lines 287:4-289:5
 -/
+
+open Aeneas Aeneas.Std
+namespace curve25519_dalek.backend.serial.u32.field.FieldElement2625
 
 /-- **Spec theorem for**
 `curve25519_dalek::backend::serial::u32::field::FieldElement2625::from_limbs`
