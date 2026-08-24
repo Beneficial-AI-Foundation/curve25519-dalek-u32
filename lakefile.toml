@@ -1,7 +1,7 @@
 name = "curve25519-dalek"
 version = "0.1.0"
 keywords = ["formal verification"]
-defaultTargets = ["Dalek32", "translated"]
+defaultTargets = ["Dalek32", "translated","proofs"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -26,6 +26,11 @@ name = "HeaderLinter"
 # curve25519-dalek/translated/ with root import file curve25519-dalek/translated.lean.
 [[lean_lib]]
 name = "translated"
+srcDir = "curve25519-dalek"
+
+# Hand-written proofs are added later as a sibling library:
+[[lean_lib]]
+name = "proofs"
 srcDir = "curve25519-dalek"
 
 [[lean_lib]]
