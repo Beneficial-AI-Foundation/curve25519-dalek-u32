@@ -11,7 +11,7 @@ fi
 echo "PASS"
 
 echo "=== Lint check ==="
-lake exe runLinter Spqr 2>&1 | tee /tmp/lake-lint.log || true
+lake exe runLinter Dalek32 2>&1 | tee /tmp/lake-lint.log || true
 if grep -q 'error:' /tmp/lake-lint.log; then
   echo "FAIL: lint errors in hand-written code:"
   grep 'error:' /tmp/lake-lint.log
