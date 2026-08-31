@@ -1,3 +1,4 @@
 # This file is a temporary workaround, subject to removal upon closure of https://github.com/Beneficial-AI-Foundation/probe-aeneas/issues/63.
+# It must be kept synced with rustflags set in `aeneas-config.yml`
 [build]
 rustflags = "--cfg curve25519_dalek_backend=\"serial\" --cfg curve25519_dalek_bits=\"32\""
