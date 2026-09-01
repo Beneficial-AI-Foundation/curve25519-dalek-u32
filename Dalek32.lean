@@ -1,3 +1,5 @@
+import Dalek32.Auxiliary
+import Dalek32.Definitions
 import Dalek32.Field.FromLimbs
 import Dalek32.Field.from_bytes.LOW23BITS
 import Dalek32.Field.reduce.LOW25BITS
