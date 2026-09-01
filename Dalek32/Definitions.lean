@@ -6,8 +6,13 @@ Authors: András Némedy Varga
 import Aeneas
 import translated.Types
 
+/-! # Common definitions
 
-/-*Aeneas related definitions:*-/
+Common definitions used across spec theorems: field constants, conversion functions, etc.
+-/
+
+
+/-! ## Aeneas related definitions-/
 
 namespace Aeneas.Std
 
@@ -25,7 +30,7 @@ def Array.uScalarToNatField2625 {ty : UScalarTy} (limbs : Array (UScalar ty) 10#
 end Aeneas.Std
 
 
-/-*Curve25519-Dalek related definitions:*-/
+/-! ## Curve25519-Dalek related definitions-/
 
 open Aeneas Aeneas.Std
 
@@ -37,8 +42,7 @@ def p : Nat := 2 ^ 255 - 19
 attribute [irreducible] p
 
 
-/-# Nested in curve25519_dalek-/
-/-*FieldELement2625 related definitions:*-/
+/-! ## FieldELement2625 related definitions (nested into curve25519_dalek)-/
 
 namespace backend.serial.u32.field.FieldElement2625
 

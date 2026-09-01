@@ -6,10 +6,14 @@ Authors: András Némedy Varga
 import Dalek32.Definitions
 import Mathlib.Tactic.NormNum
 
+/-! # Auxiliary theorems
+
+Theorems which are useful for proving spec theorems in this project, but aren't available upstream.
+This file is for theorems which depend only on Definitions.lean, not on Funs.lean. -/
+
 open Aeneas Aeneas.Std Finset
 
-
-/-*Aeneas specific theorems:*-/
+/-! ## Aeneas specific theorems-/
 
 namespace Aeneas.Std
 
@@ -40,7 +44,7 @@ theorem Array.toNatField2625_congr {ty : UScalarTy}
 end Aeneas.Std
 
 
-/-*Curve25519-Dalek specific theorems:*-/
+/-! ## Curve25519-Dalek specific theorems-/
 
 namespace curve25519_dalek
 
@@ -55,8 +59,7 @@ theorem two_pow_254_lt_p : 2 ^ 254 < p := by norm_num [p]
 theorem p_lt_two_pow_255 : p < 2 ^ 255 := by norm_num [p]
 
 
-/-# Nested in curve25519_dalek-/
-/-*FieldElement2625 specific theorems:*-/
+/-! ## FieldElement2625 specific theorems (nested into curve25519_dalek)-/
 
 namespace backend.serial.u32.field.FieldElement2625
 
@@ -74,7 +77,7 @@ end backend.serial.u32.field.FieldElement2625
 end curve25519_dalek
 
 
-/-*General theorems:*-/
+/-! ## General theorems-/
 
 /-- Disjoint `|||` is addition: the low operand fits under the shift.
 Analogue of `Nat.two_pow_add_eq_or_of_lt` but with reversed order. -/
