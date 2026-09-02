@@ -155,6 +155,9 @@ async function main(): Promise<void> {
   if (config.aeneas_args.subdir) {
     aeneasArgs.push("-subdir", config.aeneas_args.subdir);
   }
+  if (config.aeneas_args.namespace) {
+    aeneasArgs.push("-namespace", config.aeneas_args.namespace);
+  }
   aeneasArgs.push(llbcPath);  // absolute path since aeneas runs from root
 
   fs.mkdirSync(outputDir, { recursive: true });

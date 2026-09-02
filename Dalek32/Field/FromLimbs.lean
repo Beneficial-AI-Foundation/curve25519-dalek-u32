@@ -15,7 +15,7 @@ Source: "curve25519-dalek/src/backend/serial/u32/field.rs", lines 287:4-289:5
 -/
 
 open Aeneas Aeneas.Std
-namespace curve25519_dalek.backend.serial.u32.field.FieldElement2625
+namespace Curve25519Dalek.backend.serial.u32.field.FieldElement2625
 
 /-- **Spec theorem for**
 `curve25519_dalek::backend::serial::u32::field::FieldElement2625::from_limbs`
@@ -29,4 +29,4 @@ theorem from_limbs_spec (limbs : Array Std.U32 10#usize) :
   rfl
 
 
-end curve25519_dalek.backend.serial.u32.field.FieldElement2625
+end Curve25519Dalek.backend.serial.u32.field.FieldElement2625
