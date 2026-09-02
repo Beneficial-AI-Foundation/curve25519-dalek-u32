@@ -20,7 +20,7 @@ set_option maxRecDepth 2048
 /- You can remove the following line by using the CLI option `-all-computable`: -/
 noncomputable section
 
-namespace curve25519_dalek
+namespace Curve25519Dalek
 
 /-- Trait implementation: [zeroize::{impl zeroize::Zeroize for Z}]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.8.2/src/lib.rs', lines 297:0-299:23
@@ -3521,4 +3521,4 @@ def backend.serial.u32.scalar.Scalar29.from_montgomery
       { start := 0#usize, «end» := 9#usize } self limbs
   backend.serial.u32.scalar.Scalar29.montgomery_reduce limbs1
 
-end curve25519_dalek
+end Curve25519Dalek
