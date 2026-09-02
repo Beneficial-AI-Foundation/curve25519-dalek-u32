@@ -44,12 +44,13 @@ theorem Array.toNatField2625_congr {ty : UScalarTy}
 end Aeneas.Std
 
 
-/-! ## Curve25519-Dalek specific theorems-/
+/-! ## Curve25519Dalek specific theorems-/
 
-namespace curve25519_dalek
+namespace Curve25519Dalek
 
 /-Characterization API for `p`: later proofs use only these lemmas below, never the literal value.
 `p` is made irreducible in `Definitions.lean` to avoid accidental unfolding.-/
+
 theorem p_add_19 : p + 19 = 2 ^ 255 := by norm_num [p]
 
 theorem p_pos : 0 < p := by norm_num [p]
@@ -59,7 +60,7 @@ theorem two_pow_254_lt_p : 2 ^ 254 < p := by norm_num [p]
 theorem p_lt_two_pow_255 : p < 2 ^ 255 := by norm_num [p]
 
 
-/-! ## FieldElement2625 specific theorems (nested into curve25519_dalek)-/
+/-! ## FieldElement2625 specific theorems (nested into Curve25519Dalek)-/
 
 namespace backend.serial.u32.field.FieldElement2625
 
@@ -74,7 +75,7 @@ theorem toNat_congr (x y : FieldElement2625) (h : ∀ i, i < 10 → x[i]!.val = 
 
 end backend.serial.u32.field.FieldElement2625
 
-end curve25519_dalek
+end Curve25519Dalek
 
 
 /-! ## General theorems-/

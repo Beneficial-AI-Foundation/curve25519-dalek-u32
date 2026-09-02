@@ -30,11 +30,11 @@ def Array.uScalarToNatField2625 {ty : UScalarTy} (limbs : Array (UScalar ty) 10#
 end Aeneas.Std
 
 
-/-! ## Curve25519-Dalek related definitions-/
+/-! ## Curve25519Dalek related definitions-/
 
 open Aeneas Aeneas.Std
 
-namespace curve25519_dalek
+namespace Curve25519Dalek
 
 /-- The field prime `p = 2^255 - 19`. -/
 def p : Nat := 2 ^ 255 - 19
@@ -42,7 +42,7 @@ def p : Nat := 2 ^ 255 - 19
 attribute [irreducible] p
 
 
-/-! ## FieldELement2625 related definitions (nested into curve25519_dalek)-/
+/-! ## FieldELement2625 related definitions (nested into Curve25519Dalek)-/
 
 namespace backend.serial.u32.field.FieldElement2625
 
@@ -52,4 +52,4 @@ def toNat (x : FieldElement2625) : Nat := Array.uScalarToNatField2625 x
 
 end backend.serial.u32.field.FieldElement2625
 
-end curve25519_dalek
+end Curve25519Dalek
