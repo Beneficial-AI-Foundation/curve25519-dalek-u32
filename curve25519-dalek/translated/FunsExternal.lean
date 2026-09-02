@@ -13,7 +13,7 @@ set_option maxHeartbeats 1000000
 
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
-open curve25519_dalek
+open Curve25519Dalek
 
 /-- [core::array::{impl core::iter::traits::collect::IntoIterator<&'a mut T, core::slice::iter::IterMut<'a, T>> for &'a mut [T; N]}::into_iter]:
     Source: '/rustc/library/core/src/array/mod.rs', lines 376:4-376:40

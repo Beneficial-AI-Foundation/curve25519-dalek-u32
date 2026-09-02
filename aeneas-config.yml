@@ -13,7 +13,6 @@ upstream:
 
 crate:
   dir: "curve25519-dalek"
-  name: "curve25519_dalek"
 
 charon:
   # start_from / exclude / opaque are read natively by Charon from
@@ -47,6 +46,7 @@ aeneas_args:
     - emit-json
   dest: "curve25519-dalek"        # dest dir; root import file -> curve25519-dalek/translated.lean
   subdir: "translated"            # output -> curve25519-dalek/translated/, import prefix `translated`
+  namespace: "Curve25519Dalek"    # Lean namespace for the generated definitions
 
 # Post-extraction tweaks applied to generated Lean files.
 # Each substitution is either a literal `find` (all occurrences) or a `regex`,

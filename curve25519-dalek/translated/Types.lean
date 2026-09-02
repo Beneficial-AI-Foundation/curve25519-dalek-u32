@@ -16,7 +16,7 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
-namespace curve25519_dalek
+namespace Curve25519Dalek
 
 /-- Trait declaration: [core::ops::arith::Add]
     Source: '/rustc/library/core/src/ops/arith.rs', lines 76:0-76:31
@@ -119,4 +119,4 @@ def backend.serial.u32.scalar.Scalar29 := Array Std.U32 9#usize
 @[reducible]
 def backend.serial.u32.field.FieldElement2625 := Array Std.U32 10#usize
 
-end curve25519_dalek
+end Curve25519Dalek

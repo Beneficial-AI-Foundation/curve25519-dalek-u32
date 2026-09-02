@@ -14,7 +14,7 @@ Source: 'curve25519-dalek/src/backend/serial/u32/field.rs', lines 338:8-338:47
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
-namespace curve25519_dalek.backend.serial.u32.field.FieldElement2625
+namespace Curve25519Dalek.backend.serial.u32.field.FieldElement2625
 
 /-- **Spec theorem for**
 `curve25519_dalek::backend::serial::u32::field::FieldElement2625::reduce::LOW_25_BITS`
@@ -27,4 +27,4 @@ theorem reduce.LOW_25_BITS_spec :
   rfl
 
 
-end curve25519_dalek.backend.serial.u32.field.FieldElement2625
+end Curve25519Dalek.backend.serial.u32.field.FieldElement2625
