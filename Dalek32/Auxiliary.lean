@@ -21,16 +21,11 @@ namespace Aeneas.Std
 for any radix. -/
 theorem Array.toNatRadix_congr {ty : UScalarTy} {n : Usize} {exp : Nat}
     (x y : Array (UScalar ty) n) (h : ∀ i, i < n.val → x[i]!.val = y[i]!.val) :
-      x.uScalarToNatRadix exp = y.uScalarToNatRadix exp ∧
-      x.uScalarToNatRadix = y.uScalarToNatRadix := by
+      x.uScalarToNatRadix exp = y.uScalarToNatRadix exp := by
   unfold uScalarToNatRadix
-  split_conjs
-  · rw [sum_congr (f := fun i => 2 ^ (exp * i) * x[i]!.val)
-    (g := fun i => 2 ^ (exp * i) * y[i]!.val)
-    (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
-  · rw [sum_congr (f := fun i => 2 ^ (ty.numBits * i) * x[i]!.val)
-    (g := fun i => 2 ^ (ty.numBits * i) * y[i]!.val)
-    (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
+  rw [sum_congr (f := fun i => 2 ^ (exp * i) * x[i]!.val)
+  (g := fun i => 2 ^ (exp * i) * y[i]!.val)
+  (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
