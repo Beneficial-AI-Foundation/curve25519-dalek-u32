@@ -45,7 +45,7 @@ def bytes64AsNat (bytes : Array U8 64#usize) : Nat :=
   bytes.uScalarToNatRadix 8
 
 attribute [-simp] Int.reducePow Nat.reducePow
-set_option exponentiation.threshold 600
+set_option exponentiation.threshold 261
 
 /-- The scalar order fits in 253 bits. -/
 theorem order_lt_two_pow_253 : order < 2 ^ 253 := by
