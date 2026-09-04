@@ -9,8 +9,8 @@ import Dalek32.Definitions
 /-!
 # Spec theorem for `ZERO`
 
-`ZERO` returns a `Result FieldElement2625` that is the representation of the field element `0` in
-10 limbs with bit length alternating between 26 and 25.
+`ZERO` returns a `Result FieldElement2625` that is the field element `0` represented using ten
+limbs in the alternating `2^26/2^25` radix.
 Source: 'curve25519-dalek/src/backend/serial/u32/field.rs', lines 292:4-292:100
 -/
 
