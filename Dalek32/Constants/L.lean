@@ -9,7 +9,7 @@ import translated.Funs
 /-!
 # Spec theorem for `curve25519_dalek::backend::serial::u32::constants::L`
 
-This constant represents the order of the Curve25519 base point.
+This constant represents the order of the Ed25519 base point.
 
 Source: "curve25519-dalek/src/backend/serial/u32/constants.rs", lines 98:0-101:3
 -/
