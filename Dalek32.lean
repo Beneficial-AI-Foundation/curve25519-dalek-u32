@@ -9,4 +9,3 @@ import Dalek32.Field.to_bytes.LOW25BITS
 import Dalek32.Field.to_bytes.LOW26BITS
 import Dalek32.Lint.Basic
 import Dalek32.Lint.SpecIndent
-import Dalek32.Scalar.Math
