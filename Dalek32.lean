@@ -1,4 +1,8 @@
 import Dalek32.Auxiliary
+import Dalek32.Constants.L
+import Dalek32.Constants.Lfactor
+import Dalek32.Constants.R
+import Dalek32.Constants.RR
 import Dalek32.Definitions
 import Dalek32.Field.FromLimbs
 import Dalek32.Field.ZERO
