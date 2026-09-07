@@ -63,6 +63,9 @@ end backend.serial.u32.field.FieldElement2625
 
 namespace backend.serial.u32.scalar.Scalar29
 
+/-- The radix of a single 29-bit scalar limb. -/
+def limbRadix : Nat := 2 ^ 29
+
 /-- The Montgomery radix for nine radix-`2^29` limbs. -/
 def montgomeryRadix : Nat := 2 ^ 261
 
