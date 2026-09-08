@@ -5,10 +5,13 @@ import Dalek32.Constants.R
 import Dalek32.Constants.RR
 import Dalek32.Definitions
 import Dalek32.Field.FromLimbs
+import Dalek32.Field.MINUS_ONE
+import Dalek32.Field.ONE
 import Dalek32.Field.ZERO
 import Dalek32.Field.from_bytes.LOW23BITS
 import Dalek32.Field.reduce.LOW25BITS
 import Dalek32.Field.reduce.LOW26BITS
+import Dalek32.Field.reduce.carry
 import Dalek32.Field.to_bytes.LOW25BITS
 import Dalek32.Field.to_bytes.LOW26BITS
 import Dalek32.Lint.Basic
