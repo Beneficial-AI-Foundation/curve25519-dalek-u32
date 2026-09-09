@@ -15,3 +15,7 @@ import Dalek32.Field.to_bytes.LOW25BITS
 import Dalek32.Field.to_bytes.LOW26BITS
 import Dalek32.Lint.Basic
 import Dalek32.Lint.SpecIndent
+import Dalek32.Scalar.Index
+import Dalek32.Scalar.IndexMut
+import Dalek32.Scalar.M
+import Dalek32.Scalar.Zero
