@@ -23,9 +23,9 @@ namespace Curve25519Dalek.backend.serial.u32.constants
 The scalar order times `LFACTOR` is `-1` modulo `2^29`, and `LFACTOR` fits in one
 radix-`2^29` limb. -/
 theorem LFACTOR_spec :
-    (Curve25519Dalek.order * LFACTOR.val + 1) % (2 ^ 29) = 0 ∧
-    LFACTOR.val < 2 ^ 29 := by
-  unfold LFACTOR Curve25519Dalek.order
+    (Curve25519Dalek.order * LFACTOR.val + 1) % Scalar29.limbRadix = 0 ∧
+    LFACTOR.val < Scalar29.limbRadix := by
+  unfold LFACTOR Curve25519Dalek.order Scalar29.limbRadix
   decide
 
 end Curve25519Dalek.backend.serial.u32.constants

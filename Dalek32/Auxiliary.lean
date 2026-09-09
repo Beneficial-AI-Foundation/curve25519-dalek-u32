@@ -134,8 +134,9 @@ theorem cancel_montgomeryRadix {a b : Nat}
 set_option exponentiation.threshold 261 in
 /-- Nine radix-`2^29` limbs represent a value below the Montgomery radix. -/
 theorem asNat_bounded (s : Scalar29)
-    (hs : ∀ i < 9, s[i]!.val < 2 ^ 29) :
+    (hs : ∀ i < 9, s[i]!.val < limbRadix) :
     asNat s < montgomeryRadix := by
+  unfold limbRadix at hs
   change (∑ i ∈ Finset.range 9, 2 ^ (29 * i) * s[i]!.val) < 2 ^ 261
   simp only [Finset.sum_range_succ, Finset.range_zero, Finset.sum_empty, zero_add]
   grind
