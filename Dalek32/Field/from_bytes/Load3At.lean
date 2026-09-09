@@ -32,9 +32,9 @@ will be useful later. -/
 theorem from_bytes.load3_at_spec (b : Slice U8) (i : Usize)
     (hi : i.val + 3 ≤ b.length) :
     from_bytes.load3_at b i ⦃ (r : U64) =>
-      r.val = b[i.val]!.val + 2 ^ 8 * b[i.val + 1]!.val + 2 ^ 16 * b[i.val + 2]!.val
+      r.val = b[i.val]!.val + 2 ^ 8 * b[i.val + 1]!.val + 2 ^ 16 * b[i.val + 2]!.val ∧
       /- Redundant: it follows from the other conjunct. -/
-      ∧ r.val < 2 ^ 24 ⦄ := by
+      r.val < 2 ^ 24 ⦄ := by
   unfold from_bytes.load3_at
   step*
   refine (and_iff_left_of_imp (fun h => ?_)).mpr ?_
