@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Disposable A/B/control experiment. No Git commands or remote writes."""
+"""Disposable indentation-only A/B/control experiment. No Git commands or remote writes."""
 
 import hashlib
 import json
@@ -58,44 +58,49 @@ def require(condition, message):
 def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     original = FIXTURE.read_text()
+    require(original.startswith("/-\nCopyright (c) 2026 "),
+            "All cases must start with a valid copyright header")
     imported = replace_once(original, "import translated.Funs\n",
                             "import translated.Funs\nimport Dalek32.Lint.Basic\n")
-    corrected = replace_once(imported, "Copyright 2026 ", "Copyright (c) 2026 ")
-    corrected = replace_once(corrected, "    result = x ⦄ := by\n",
+    corrected = replace_once(imported, "    result = x ⦄ := by\n",
                               "      result = x ⦄ := by\n")
     for label, text in [("A-original", original), ("B-import-only", imported),
                         ("C-corrected", corrected)]:
         (OUTPUT / f"{label}.lean").write_text(text)
     require("import Dalek32.LinterRepro\n" in (ROOT / "Dalek32.lean").read_text(),
-            "Fixture must be imported by the library root, including for headerAlt's guard")
+            "Fixture must be imported by the library root")
     try:
         a = run("A-build", ["lake", "build", "--no-ansi"])
         require(not a["non_sorry_warning_lines"], "A: unexpected baseline style warning")
         require(not a["header_diagnostic"] and not a["indent_diagnostic"],
-                "A: the hypothesized missing checks were NOT reproduced")
+                "A: the hypothesized indentation-check gap was NOT reproduced")
         lint = run("A-environment-lint", ["lake", "exe", "runLinter", "Dalek32"])
+        require(not lint["non_sorry_warning_lines"], "A: unexpected environment-lint warning")
         require(not lint["header_diagnostic"] and not lint["indent_diagnostic"],
-                "A: environment lint detected the defects; revise the diagnosis")
+                "A: environment lint reported a diagnostic; revise the diagnosis")
 
         FIXTURE.write_text(imported)
         b = run("B-import-only", ["lake", "build", "Dalek32.LinterRepro", "--no-ansi"])
-        require(b["header_diagnostic"] and b["indent_diagnostic"],
-                "B: adding the import did not activate BOTH expected diagnostics")
+        require(b["indent_diagnostic"] and not b["header_diagnostic"],
+                "B: import-only control did not isolate the expected indentation diagnostic")
         require(bool(b["non_sorry_warning_lines"]),
-                "B: expected warnings would not trigger the existing CI warning gate")
+                "B: expected warning would not trigger the existing CI warning gate")
 
         FIXTURE.write_text(corrected)
         c = run("C-corrected", ["lake", "build", "Dalek32.LinterRepro", "--no-ansi"])
         require(not c["non_sorry_warning_lines"], "C: corrected control still warns")
         require(not c["header_diagnostic"] and not c["indent_diagnostic"],
-                "C: corrected control still reports the deliberate defects")
+                "C: corrected control still reports a header or indentation diagnostic")
         summary = (
-            "## Syntax-linter reproduction confirmed\n\n"
-            "A: valid proof with two style defects builds and passes environment lint.\n\n"
-            "B: adding only `import Dalek32.Lint.Basic` reports BOTH defects. "
-            "These non-sorry warnings would fail the existing Lean CI warning gate.\n\n"
-            "C: correcting only the header and postcondition indentation removes the warnings.\n\n"
-            "No linter options were disabled and no mathematical proof was changed.\n"
+            "## Specification-indentation reproduction confirmed\n\n"
+            "A: valid header and proof with a four-space postcondition build and pass "
+            "environment lint without the indentation diagnostic.\n\n"
+            "B: adding only `import Dalek32.Lint.Basic` reports the indentation defect. "
+            "This non-sorry warning would fail the existing Lean CI warning gate.\n\n"
+            "C: correcting only the postcondition indentation removes the warning.\n\n"
+            "The header is valid throughout. No linter options were disabled and no "
+            "mathematical proof was changed. The first run had already shown that Mathlib's "
+            "standard header checker catches the malformed header.\n"
         )
         (OUTPUT / "SUMMARY.md").write_text(summary)
         if os.environ.get("GITHUB_STEP_SUMMARY"):
