@@ -27,8 +27,8 @@ theorem L_spec : Scalar29.asNat L = Curve25519Dalek.order := by
   decide
 
 /-- Every limb of `L` fits in the radix-`2^29` representation. -/
-theorem L_limbs_lt : ∀ i < 9, L[i]!.val < 2 ^ 29 := by
-  unfold L
+theorem L_limbs_lt : ∀ i < 9, L[i]!.val < Scalar29.limbRadix := by
+  unfold L Scalar29.limbRadix
   decide
 
 end Curve25519Dalek.backend.serial.u32.constants

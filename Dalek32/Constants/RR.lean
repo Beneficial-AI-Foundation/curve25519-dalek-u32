@@ -32,8 +32,8 @@ theorem RR_spec :
   decide
 
 /-- Every limb of `RR` fits in the radix-`2^29` representation. -/
-theorem RR_limbs_lt : ∀ i < 9, RR[i]!.val < 2 ^ 29 := by
-  unfold RR
+theorem RR_limbs_lt : ∀ i < 9, RR[i]!.val < Scalar29.limbRadix := by
+  unfold RR Scalar29.limbRadix
   decide
 
 /-- The represented value of `RR` is the canonical residue modulo the scalar order. -/
