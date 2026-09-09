@@ -5,6 +5,7 @@ import Dalek32.Constants.R
 import Dalek32.Constants.RR
 import Dalek32.Definitions
 import Dalek32.Field.FromLimbs
+import Dalek32.Field.MINUSONE
 import Dalek32.Field.ONE
 import Dalek32.Field.ZERO
 import Dalek32.Field.from_bytes.LOW23BITS
