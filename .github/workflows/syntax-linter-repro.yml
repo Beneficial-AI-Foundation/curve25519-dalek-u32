@@ -1,0 +1,38 @@
+name: Temporary syntax-linter reproduction
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/syntax-linter-repro.yml'
+      - 'scripts/repro-syntax-linters.py'
+      - 'Dalek32/LinterRepro.lean'
+      - 'Dalek32.lean'
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce:
+    name: Compare missing import, enabled linters, and corrected source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      LEAN_ABORT_ON_PANIC: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+      - name: Run the controlled experiment
+        run: python3 scripts/repro-syntax-linters.py
+      - name: Preserve raw logs and all three source variants
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: syntax-linter-reproduction
+          path: ${{ runner.temp }}/dalek32-linter-repro
+          if-no-files-found: error
+          retention-days: 14
