@@ -6,7 +6,10 @@ Authors: Wojciech Aleksander Wołoszyn
 import translated.Funs
 
 /-!
-# Spec theorem for `curve25519_dalek::backend::serial::u32::scalar::Scalar29::index_mut`
+# Spec theorem for `index_mut`
+
+`<curve25519_dalek::backend::serial::u32::scalar::Scalar29 as
+core::ops::IndexMut<usize>>::index_mut`
 
 Mutably indexes a `Scalar29`, returning the selected limb and a write-back function.
 

@@ -6,7 +6,10 @@ Authors: Wojciech Aleksander Wołoszyn
 import translated.Funs
 
 /-!
-# Spec theorem for `curve25519_dalek::backend::serial::u32::scalar::Scalar29::index`
+# Spec theorem for `index`
+
+`<curve25519_dalek::backend::serial::u32::scalar::Scalar29 as
+core::ops::Index<usize>>::index`
 
 Indexes a `Scalar29` by `usize`, returning the `u32` limb at the requested position.
 

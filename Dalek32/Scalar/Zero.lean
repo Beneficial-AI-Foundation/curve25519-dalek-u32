@@ -27,4 +27,9 @@ theorem ZERO_spec : asNat ZERO = 0 := by
   unfold ZERO
   decide
 
+/-- Every limb of `ZERO` is zero. -/
+theorem ZERO_limbs : ∀ i < 9, ZERO[i]!.val = 0 := by
+  unfold ZERO
+  decide
+
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
