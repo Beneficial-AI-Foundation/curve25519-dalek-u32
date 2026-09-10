@@ -31,10 +31,8 @@ theorem index_spec (self : Scalar29) (_index : Usize)
     (h_bound : _index.val < 9) :
     index self _index ⦃ (result : U32) =>
       result = self.val[_index.val]! ⦄ := by
-  have h_index : _index.val < self.val.length := by
-    rw [Aeneas.Std.Array.length_eq]
-    exact h_bound
-  simpa only [index, getElem!_pos self.val _index.val h_index] using
-    Aeneas.Std.Array.index_usize_spec self _index h_index
+  unfold index
+  step
+  grind
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexUsizeU32

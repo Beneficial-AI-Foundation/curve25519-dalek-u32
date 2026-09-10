@@ -30,14 +30,11 @@ array write-back function. -/
 @[step]
 theorem index_mut_spec (self : Scalar29) (_index : Usize)
     (h_bound : _index.val < 9) :
-    index_mut self _index ⦃ (result : U32 × (U32 → Scalar29)) =>
-      result.1 = self.val[_index.val]! ∧
-      result.2 = Aeneas.Std.Array.set self _index ⦄ := by
-  have h_index : _index.val < self.val.length := by
-    rw [Aeneas.Std.Array.length_eq]
-    exact h_bound
+    index_mut self _index ⦃ (limb : U32) (back : U32 → Scalar29) =>
+      limb = self.val[_index.val]! ∧
+      back = Aeneas.Std.Array.set self _index ⦄ := by
   unfold index_mut
   step*
-  simp_all only [List.Vector.length_val, UScalar.ofNatCore_val_eq, getElem!_pos, and_self]
+  grind
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexMutUsizeU32
