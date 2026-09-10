@@ -9,6 +9,7 @@ import Dalek32.Field.MINUSONE
 import Dalek32.Field.ONE
 import Dalek32.Field.ZERO
 import Dalek32.Field.from_bytes.LOW23BITS
+import Dalek32.Field.from_bytes.Load3At
 import Dalek32.Field.reduce.LOW25BITS
 import Dalek32.Field.reduce.LOW26BITS
 import Dalek32.Field.to_bytes.LOW25BITS
