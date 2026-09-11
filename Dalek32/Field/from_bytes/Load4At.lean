@@ -33,7 +33,7 @@ theorem from_bytes.load4_at_spec (b : Slice U8) (i : Usize)
     (hi : i.val + 4 ≤ b.length) :
     from_bytes.load4_at b i ⦃ (r : U64) =>
       r.val = b[i.val]!.val + 2 ^ 8 * b[i.val + 1]!.val +
-      2 ^ 16 * b[i.val + 2]! + 2 ^ 24 * b[i.val + 3]!.val ∧
+      2 ^ 16 * b[i.val + 2]!.val + 2 ^ 24 * b[i.val + 3]!.val ∧
       /- Redundant: it follows from the other conjunct. -/
       r.val < 2 ^ 32 ⦄ := by
   unfold from_bytes.load4_at
