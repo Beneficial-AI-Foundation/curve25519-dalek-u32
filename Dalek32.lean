@@ -21,3 +21,5 @@ import Dalek32.Scalar.Index
 import Dalek32.Scalar.IndexMut
 import Dalek32.Scalar.M
 import Dalek32.Scalar.Zero
+import Dalek32.Subtle.ChoiceFromU8
+import Dalek32.Subtle.ConditionalSelectU32
