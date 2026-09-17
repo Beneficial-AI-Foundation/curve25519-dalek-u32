@@ -1,5 +1,17 @@
+/-
+Copyright (c) 2026 The Beneficial AI Foundation. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Wojciech Aleksander Wołoszyn
+-/
 import Aeneas
 import translated.Types
+
+/-!
+# External function models
+
+Conversion models the debug assertion; selection uses raw-byte masks.
+-/
+
 open Aeneas Aeneas.Std Result ControlFlow Error
 set_option linter.dupNamespace false
 set_option linter.hashCommand false
@@ -29,10 +41,11 @@ axiom MutAArray.Insts.CoreIterTraitsCollectIntoIteratorMutATIterMut.into_iter
 /-- [subtle::{impl core::convert::From<u8> for subtle::Choice}::from]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 238:4-238:32
     Name pattern: [subtle::{core::convert::From<subtle::Choice, u8>}::from]
+    Docs: https://docs.rs/subtle/2.6.1/subtle/struct.Choice.html
     Visibility: public -/
 @[rust_fun "subtle::{core::convert::From<subtle::Choice, u8>}::from"]
-axiom subtle.Choice.Insts.CoreConvertFromU8.from
-  : Std.U8 → Result subtle.Choice
+def subtle.Choice.Insts.CoreConvertFromU8.from (input : U8) : Result subtle.Choice :=
+  if input = 0#u8 ∨ input = 1#u8 then ok input else fail Error.panic
 
 /-- [subtle::ConditionallySelectable::conditional_assign]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 442:4-442:66
@@ -58,11 +71,15 @@ axiom subtle.ConditionallySelectable.conditional_swap.default
 /-- [subtle::{impl subtle::ConditionallySelectable for u32}::conditional_select]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 513:12-513:77
     Name pattern: [subtle::{subtle::ConditionallySelectable<u32>}::conditional_select]
+    Docs: https://docs.rs/subtle/2.6.1/subtle/trait.ConditionallySelectable.html
     Visibility: public -/
 @[rust_fun
   "subtle::{subtle::ConditionallySelectable<u32>}::conditional_select"]
-axiom U32.Insts.SubtleConditionallySelectable.conditional_select
-  : Std.U32 → Std.U32 → subtle.Choice → Result Std.U32
+def U32.Insts.SubtleConditionallySelectable.conditional_select
+    (a b : U32) (choice : subtle.Choice) : Result U32 :=
+  -- Wrapping negation of the byte.
+  let mask : BitVec 32 := -(BitVec.ofNat 32 choice.val)
+  ok { bv := a.bv ^^^ (mask &&& (a.bv ^^^ b.bv)) }
 
 /-- [subtle::{impl subtle::ConditionallySelectable for u32}::conditional_assign]:
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 521:12-521:74
