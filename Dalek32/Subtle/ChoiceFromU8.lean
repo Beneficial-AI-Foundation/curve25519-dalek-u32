@@ -23,7 +23,7 @@ Preserves 0 or 1. -/
 @[step]
 theorem from_spec (input : U8) (h_input : input = 0#u8 ∨ input = 1#u8) :
     «from» input ⦃ (choice : subtle.Choice) =>
-      choice.val = input ⦄ := by
+      choice = input ⦄ := by
   simp [«from», h_input]
 
 end subtle.Choice.Insts.CoreConvertFromU8

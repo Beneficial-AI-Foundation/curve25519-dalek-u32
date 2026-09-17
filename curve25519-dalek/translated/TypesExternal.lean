@@ -24,8 +24,7 @@ set_option maxRecDepth 2048
 /-- [subtle::Choice]
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/subtle-2.6.1/src/lib.rs', lines 120:0-120:17
     Name pattern: [subtle::Choice]
+    Docs: https://docs.rs/subtle/2.6.1/subtle/struct.Choice.html
     Visibility: public -/
-@[rust_type "subtle::Choice"]
-structure subtle.Choice where
-  /-- The unrestricted raw byte. -/
-  val : U8
+@[reducible, rust_type "subtle::Choice"]
+def subtle.Choice := Std.U8
