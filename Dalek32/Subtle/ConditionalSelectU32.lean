@@ -9,19 +9,13 @@ import translated.FunsExternal
 /-!
 # `u32::conditional_select`
 
-Raw-mask and valid-choice specifications.
+Valid-choice specification.
 Source: "subtle-2.6.1/src/lib.rs", lines 513-518.
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 
 namespace U32.Insts.SubtleConditionallySelectable
-
-/-- Raw-mask specification. -/
-theorem conditional_select_mask_spec (a b : U32) (choice : subtle.Choice) :
-    conditional_select a b choice ⦃ (result : U32) =>
-      result.bv = a.bv ^^^ (-(BitVec.ofNat 32 choice.val) &&& (a.bv ^^^ b.bv)) ⦄ := by
-  simp [conditional_select]
 
 /-- **Spec theorem for `<u32 as subtle::ConditionallySelectable>::conditional_select`**
 
