@@ -3,6 +3,7 @@ Copyright (c) 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Aleksander Wołoszyn
 -/
+import Dalek32.Lint.Basic
 import translated.Funs
 
 /-!
@@ -26,5 +27,17 @@ theorem m_spec (x y : U32) :
       result.val = x.val * y.val ⦄ := by
   unfold m
   step*
+
+/-- Exact product with propagated operand bounds. -/
+theorem m_spec_bounded (x y : U32) {x_bound y_bound : Nat}
+    (h_x : x.val ≤ x_bound) (h_y : y.val ≤ y_bound) :
+    m x y ⦃ (result : U64) =>
+      result.val = x.val * y.val ∧
+      result.val ≤ x_bound * y_bound ⦄ := by
+  apply spec_mono (m_spec x y)
+  intro result h_result
+  refine ⟨h_result, ?_⟩
+  rw [h_result]
+  exact Nat.mul_le_mul h_x h_y
 
 end Curve25519Dalek.backend.serial.u32.scalar
