@@ -66,19 +66,12 @@ theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usi
     simp only [h_next]
     step with Insts.CoreOpsIndexIndexUsizeU32.index_spec as ⟨x, h_x⟩
     step with Insts.CoreOpsIndexIndexUsizeU32.index_spec as ⟨y, h_y⟩
-    have h_x_value : x.val = a[iter.start.val]!.val := by
-      simp only [h_x, Array.getElem!_Nat_eq]
-    have h_y_value : y.val = b[iter.start.val]!.val := by
-      simp only [h_y, Array.getElem!_Nat_eq]
     have h_x_bound : x.val < limbRadix := by
-      rw [h_x_value]
-      exact h_a iter.start.val hi
+      simpa only [h_x, Array.getElem!_Nat_eq] using h_a iter.start.val hi
     have h_y_bound : y.val < limbRadix := by
-      rw [h_y_value]
-      exact h_b iter.start.val hi
+      simpa only [h_y, Array.getElem!_Nat_eq] using h_b iter.start.val hi
     step as ⟨incoming, h_incoming⟩
-    have h_incoming_value : incoming.val = borrow.val / 2 ^ 31 := by
-      simpa only [Nat.shiftRight_eq_div_pow] using h_incoming
+    simp only [Nat.shiftRight_eq_div_pow] at h_incoming
     have h_incoming_bound : incoming.val < 2 := by scalar_tac
     step with U32.add_spec as ⟨subtrahend, h_subtrahend⟩ by
       simp only [limbRadix] at h_y_bound
@@ -104,40 +97,32 @@ theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usi
     have h_normalized : ∀ j < 9, (difference.set iter.start digit)[j]!.val < limbRadix := by
       intro j hj
       by_cases heq : iter.start.val = j
-      · rw [Array.getElem!_Nat_set_eq difference iter.start j digit
-          ⟨heq, by simpa only [Array.length_eq, UScalar.ofNatCore_val_eq] using hj⟩]
-        exact h_digit_bound
-      · rw [Array.getElem!_Nat_set_ne difference iter.start j digit heq]
-        exact h_difference j hj
+      · simpa (disch := scalar_tac) only [Array.getElem!_Nat_set_eq] using h_digit_bound
+      · simpa only [Array.getElem!_Nat_set_ne difference iter.start j digit heq]
+          using h_difference j hj
     have h_suffix' : ∀ j, iter'.start.val ≤ j → j < 9 →
         (difference.set iter.start digit)[j]!.val = 0 := by
       intro j hj hj9
-      have h_ne : iter.start.val ≠ j := by omega
-      rw [Array.getElem!_Nat_set_ne difference iter.start j digit h_ne]
-      exact h_suffix j (by omega) hj9
+      simpa only [Array.getElem!_Nat_set_ne difference iter.start j digit (by omega)]
+        using h_suffix j (by omega) hj9
     have h_update := Array.uScalarToNatRadix_set difference 29 iter.start digit hi
     change asNat (difference.set iter.start digit) +
         2 ^ (29 * iter.start.val) * difference[iter.start.val]!.val =
       asNat difference + 2 ^ (29 * iter.start.val) * digit.val at h_update
     rw [h_suffix iter.start.val (Nat.le_refl _) hi, Nat.mul_zero, Nat.add_zero] at h_update
-    rw [← h_digit_value, h_y_value, h_x_value, h_incoming_value] at h_row
+    simp only [← h_digit_value, h_y, h_x, h_incoming, ← Array.getElem!_Nat_eq] at h_row
     have h_scaled := congrArg (fun n : Nat => 2 ^ (29 * iter.start.val) * n) h_row
     simp only [Nat.mul_add] at h_scaled
     simp only [h_back]
     change Sub.Invariant a b iter' (difference.set iter.start digit) borrow' ∧
       iter'.start.val = iter.start.val + 1
     refine ⟨⟨h_end'.trans h_end, by omega, h_normalized, h_suffix', ?_⟩, h_advance⟩
-    rw [h_advance]
-    simp only [Finset.sum_range_succ]
-    have h_power : 2 ^ (29 * (iter.start.val + 1)) =
-        2 ^ (29 * iter.start.val) * limbRadix := by
-      simp only [Nat.mul_add, Nat.mul_one, Nat.pow_add, limbRadix]
-    rw [h_update, h_power]
-    simp only [Nat.mul_assoc]
+    rw [h_advance, h_update]
+    simp only [Finset.sum_range_succ, Nat.mul_add, Nat.mul_one, Nat.pow_add,
+      Nat.mul_assoc, limbRadix] at h_scaled ⊢
     omega
   · simp only [hi, ↓reduceIte] at h_next
-    rcases h_next with ⟨h_next, _h_same⟩
-    simp only [h_next, spec_ok]
+    simp only [h_next.1, spec_ok]
     exact ⟨by omega, trivial, trivial⟩
 
 end sub_loop
@@ -166,17 +151,16 @@ theorem sub_loop_spec (iter : core.ops.range.Range Usize) (a b difference : Scal
   cases flow with
   | done result =>
     rcases result with ⟨difference', borrow'⟩
-    rcases h_flow with ⟨h_done, h_difference_eq, h_borrow_eq⟩
-    subst difference' borrow'
+    rcases h_flow with ⟨h_done, rfl, rfl⟩
     refine ⟨h_difference, ?_⟩
     rw [h_done] at h_value
-    change asNat difference + asNat b =
-      asNat a + 2 ^ (29 * 9) * (borrow.val / 2 ^ 31) at h_value
+    change asNat difference' + asNat b =
+      asNat a + 2 ^ (29 * 9) * (borrow'.val / 2 ^ 31) at h_value
     simpa only [montgomeryRadix, show 29 * 9 = 261 from rfl] using h_value
   | cont state =>
     rcases state with ⟨iter', difference', borrow'⟩
     rcases h_flow with ⟨h_state', h_advance⟩
-    have ⟨_, h_next_start, _, _, _⟩ := h_state'
+    have h_next_start := h_state'.2.1
     exact ⟨h_state', by dsimp only; omega⟩
 
 /-- **Spec theorem for `curve25519_dalek::backend::serial::u32::scalar::Scalar29::sub`**
@@ -197,14 +181,10 @@ theorem sub_spec (a b : Scalar29) (h_a : ∀ j < 9, a[j]!.val < limbRadix)
     rw [h_mask, h_shifted, U32.size, U32.numBits]
     rfl
   have h_initial : Sub.Invariant a b { start := 0#usize, «end» := 9#usize } ZERO 0#u32 := by
-    refine ⟨rfl, by decide, ?_, ?_, ?_⟩
-    · intro j hj
-      rw [ZERO_limbs j hj]
-      decide
-    · intro j _hj hj9
-      exact ZERO_limbs j hj9
-    · simp only [ZERO_spec, UScalar.ofNatCore_val_eq, Nat.zero_div, Nat.mul_zero,
-        Finset.range_zero, Finset.sum_empty, Nat.add_zero]
+    refine ⟨rfl, by decide, ?_, fun j _ hj => ZERO_limbs j hj, by simp⟩
+    intro j hj
+    rw [ZERO_limbs j hj]
+    decide
   step with sub_loop_spec _ _ _ _ _ _ h_a h_b h_mask_value h_initial
     as ⟨difference, borrow, h_difference, h_value⟩
   have h_difference_bound := asNat_bounded difference h_difference
@@ -227,28 +207,11 @@ theorem sub_spec (a b : Scalar29) (h_a : ∀ j < 9, a[j]!.val < limbRadix)
     simp only [limbRadix] at h_carry ⊢
     omega
   refine ⟨h_result, ?_⟩
-  rcases h_condition_cases with h_zero | h_one
-  · have h_borrow_zero : borrow.val / 2 ^ 31 = 0 := by
-      simpa only [h_zero, UScalar.ofNatCore_val_eq] using h_condition_value.symm
-    simp only [h_borrow_zero, Nat.mul_zero, Nat.add_zero] at h_value
-    have h_nonnegative : ¬ asNat a < asNat b := by omega
-    simp only [h_nonnegative, ↓reduceIte, Nat.add_zero]
-    simp only [h_zero, show (0#u8) ≠ 1#u8 by decide, ↓reduceIte, Nat.add_zero] at h_sum
-    rcases h_carry_cases with hc | hc
-    · simp only [hc, Nat.mul_zero, Nat.add_zero] at h_sum
-      omega
-    · simp only [hc, Nat.mul_one] at h_sum
-      omega
-  · have h_borrow_one : borrow.val / 2 ^ 31 = 1 := by
-      simpa only [h_one, UScalar.ofNatCore_val_eq] using h_condition_value.symm
-    simp only [h_borrow_one, Nat.mul_one] at h_value
-    have h_negative : asNat a < asNat b := by omega
-    simp only [h_negative, ↓reduceIte]
-    simp only [h_one, ↓reduceIte] at h_sum
-    rcases h_carry_cases with hc | hc
-    · simp only [hc, Nat.mul_zero, Nat.add_zero] at h_sum
-      omega
-    · simp only [hc, Nat.mul_one] at h_sum
-      omega
+  rcases h_condition_cases with h_condition | h_condition <;>
+    rcases h_carry_cases with h_carry | h_carry <;>
+    simp only [h_condition, UScalar.ofNatCore_val_eq,
+      show (0#u8) ≠ 1#u8 by decide, ↓reduceIte] at h_condition_value h_sum <;>
+    simp only [← h_condition_value, h_carry, Nat.mul_zero, Nat.mul_one,
+      Nat.add_zero] at h_value h_sum <;> split_ifs <;> omega
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
