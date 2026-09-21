@@ -212,7 +212,7 @@ theorem sub_spec (a b : Scalar29) (h_a : ∀ j < 9, a[j]!.val < limbRadix)
   have h_flag_value : flag.val = borrow.val / 2 ^ 31 := by
     simpa only [Nat.shiftRight_eq_div_pow] using h_flag
   have h_flag_bound : flag.val < 2 := by scalar_tac
-  step with UScalar.cast_inBounds_spec as ⟨byte, h_byte⟩ by scalar_tac
+  step with UScalar.cast_inBounds_spec as ⟨byte, h_byte⟩
   have h_byte_cases : byte = 0#u8 ∨ byte = 1#u8 := by scalar_tac
   step with subtle.Choice.Insts.CoreConvertFromU8.from_spec byte h_byte_cases
     as ⟨condition, h_condition⟩
