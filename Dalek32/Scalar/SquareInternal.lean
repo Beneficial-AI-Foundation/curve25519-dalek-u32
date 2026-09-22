@@ -27,28 +27,6 @@ private theorem index_eq (a : Scalar29) (j : Usize) (h_j : j.val < 9) :
     (Insts.CoreOpsIndexIndexUsizeU32.index_spec a j h_j)
   exact h_result ▸ h_eq
 
-private theorem double_spec_bounded (x : U32) (h_x : x.val ≤ 2 ^ 29) :
-    x * 2#u32 ⦃ (result : U32) =>
-      result.val = x.val * 2 ∧ result.val ≤ 2 ^ 30 ⦄ := by
-  apply spec_mono (U32.mul_spec (x := x) (y := 2#u32)
-    ((Nat.mul_le_mul_right 2 h_x).trans (by rw [U32.max_eq]; decide)))
-  intro result h_result
-  change result.val = x.val * 2 at h_result
-  exact ⟨h_result, by omega⟩
-
-private theorem u64_add_spec_bounded (x y : U64) {x_bound y_bound : Nat}
-    (h_x : x.val ≤ x_bound) (h_y : y.val ≤ y_bound)
-    (h_max : x_bound + y_bound ≤ U64.max) :
-    x + y ⦃ (result : U64) =>
-      result.val = x.val + y.val ∧ result.val ≤ x_bound + y_bound ⦄ := by
-  apply spec_mono (U64.add_spec (x := x) (y := y) ((Nat.add_le_add h_x h_y).trans h_max))
-  intro result h_result
-  refine ⟨h_result, ?_⟩
-  rw [h_result]
-  exact Nat.add_le_add h_x h_y
-
-attribute [local step] double_spec_bounded u64_add_spec_bounded
-
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::square_internal`**
 
@@ -60,17 +38,38 @@ theorem square_internal_spec (a : Scalar29)
       wideAsNat result = asNat a ^ 2 ∧
       (∀ i < 17, result[i]!.val < 2 ^ 62) ⦄ := by
   simp only [limbRadix, Array.getElem!_Nat_eq] at h_a
+  have h0 := h_a 0 (by decide)
+  have h1 := h_a 1 (by decide)
+  have h2 := h_a 2 (by decide)
+  have h3 := h_a 3 (by decide)
+  have h4 := h_a 4 (by decide)
+  have h5 := h_a 5 (by decide)
+  have h6 := h_a 6 (by decide)
+  have h7 := h_a 7 (by decide)
+  have h8 := h_a 8 (by decide)
   unfold square_internal
   -- Normalize the fixed array lookups before symbolic execution.
   simp only [index_eq, Nat.reduceLT, Array.index_usize, Array.getElem?_Usize_eq, Array.make,
     UScalar.ofNatCore_val_eq, List.getElem?_cons_zero, List.getElem?_cons_succ,
     bind_tc_ok]
-  have h_mul := @m_spec_bounded
-  -- Propagate limb bounds and discharge the remaining closed overflow checks.
-  step* -threadGrindState -grind by
-    first
-    | exact (h_a _ (by decide)).le
-    | rw [U64.max_eq]; decide
+  -- Each coefficient contains at most five products bounded by `2^30 * 2^29`.
+  repeat' first
+    | (step -threadGrindState -grind -assumTac with m_spec as ⟨product, h_product⟩
+       have h_product_bound : product.val ≤ 2 ^ 30 * 2 ^ 29 := by
+         rw [h_product]
+         apply Nat.mul_le_mul
+         · first | assumption | exact (h_a _ (by decide)).le.trans (by decide)
+         · exact (h_a _ (by decide)).le)
+    | (step -threadGrindState -grind -assumTac with U64.add_spec
+         as ⟨sum, h_sum⟩ by
+         rw [U64.max_eq]
+         clear! a
+         omega)
+    | (step -threadGrindState -grind -assumTac with U32.mul_spec
+         as ⟨doubled, h_doubled⟩ by
+         simp only [UScalar.ofNatCore_val_eq, U32.max_eq]
+         omega
+       have h_doubled_bound : doubled.val ≤ 2 ^ 30 := by omega)
   constructor
   · simp only [wideAsNat, asNat, Array.uScalarToNatRadix,
       UScalar.ofNatCore_val_eq, pow_mul]
