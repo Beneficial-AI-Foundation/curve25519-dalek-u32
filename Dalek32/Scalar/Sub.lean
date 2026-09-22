@@ -91,15 +91,11 @@ theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usi
     have h_digit_value : digit.val = borrow'.val % limbRadix := by
       simp only [h_digit, UScalar.val_and, h_mask, limbRadix,
         Nat.and_two_pow_sub_one_eq_mod]
-    have h_digit_bound : digit.val < limbRadix := by
-      rw [h_digit_value]
-      exact Nat.mod_lt _ (by decide)
+    have h_digit_bound : digit.val < limbRadix := by grind only [limbRadix]
     have h_normalized : ∀ j < 9, (difference.set iter.start digit)[j]!.val < limbRadix := by
-      intro j hj
-      by_cases heq : iter.start.val = j
-      · simpa (disch := scalar_tac) only [Array.getElem!_Nat_set_eq] using h_digit_bound
-      · simpa only [Array.getElem!_Nat_set_ne difference iter.start j digit heq]
-          using h_difference j hj
+      clear * - h_difference h_digit_bound
+      simp only [Array.getElem!_Nat_eq, Array.set_val_eq] at *
+      grind
     have h_suffix' : ∀ j, iter'.start.val ≤ j → j < 9 →
         (difference.set iter.start digit)[j]!.val = 0 := by
       intro j hj hj9
@@ -111,16 +107,15 @@ theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usi
       asNat difference + 2 ^ (29 * iter.start.val) * digit.val at h_update
     rw [h_suffix iter.start.val (Nat.le_refl _) hi, Nat.mul_zero, Nat.add_zero] at h_update
     simp only [← h_digit_value, h_y, h_x, h_incoming, ← Array.getElem!_Nat_eq] at h_row
-    have h_scaled := congrArg (fun n : Nat => 2 ^ (29 * iter.start.val) * n) h_row
-    simp only [Nat.mul_add] at h_scaled
     simp only [h_back]
     change Sub.Invariant a b iter' (difference.set iter.start digit) borrow' ∧
       iter'.start.val = iter.start.val + 1
     refine ⟨⟨h_end'.trans h_end, by omega, h_normalized, h_suffix', ?_⟩, h_advance⟩
     rw [h_advance, h_update]
     simp only [Finset.sum_range_succ, Nat.mul_add, Nat.mul_one, Nat.pow_add,
-      Nat.mul_assoc, limbRadix] at h_scaled ⊢
-    omega
+      Nat.mul_assoc]
+    clear * - h_value h_row
+    grind only [limbRadix]
   · simp only [hi, ↓reduceIte] at h_next
     simp only [h_next.1, spec_ok]
     exact ⟨by omega, trivial, trivial⟩
@@ -157,11 +152,7 @@ theorem sub_loop_spec (iter : core.ops.range.Range Usize) (a b difference : Scal
     change asNat difference' + asNat b =
       asNat a + 2 ^ (29 * 9) * (borrow'.val / 2 ^ 31) at h_value
     simpa only [montgomeryRadix, show 29 * 9 = 261 from rfl] using h_value
-  | cont state =>
-    rcases state with ⟨iter', difference', borrow'⟩
-    rcases h_flow with ⟨h_state', h_advance⟩
-    have h_next_start := h_state'.2.1
-    exact ⟨h_state', by dsimp only; omega⟩
+  | cont state => grind only [Sub.Invariant]
 
 /-- **Spec theorem for `curve25519_dalek::backend::serial::u32::scalar::Scalar29::sub`**
 
@@ -182,36 +173,23 @@ theorem sub_spec (a b : Scalar29) (h_a : ∀ j < 9, a[j]!.val < limbRadix)
     rfl
   have h_initial : Sub.Invariant a b { start := 0#usize, «end» := 9#usize } ZERO 0#u32 := by
     refine ⟨rfl, by decide, ?_, fun j _ hj => ZERO_limbs j hj, by simp⟩
-    intro j hj
-    rw [ZERO_limbs j hj]
-    decide
+    grind only [ZERO_limbs, limbRadix]
   step with sub_loop_spec _ _ _ _ _ _ h_a h_b h_mask_value h_initial
     as ⟨difference, borrow, h_difference, h_value⟩
   have h_difference_bound := asNat_bounded difference h_difference
   step as ⟨flag, h_flag⟩
-  have h_flag_value : flag.val = borrow.val / 2 ^ 31 := by
-    simpa only [Nat.shiftRight_eq_div_pow] using h_flag
+  simp only [Nat.shiftRight_eq_div_pow] at h_flag
   have h_flag_bound : flag.val < 2 := by scalar_tac
   step with UScalar.cast_inBounds_spec as ⟨byte, h_byte⟩
+  rw [h_flag] at h_byte
   have h_byte_cases : byte = 0#u8 ∨ byte = 1#u8 := by scalar_tac
   step with subtle.Choice.Insts.CoreConvertFromU8.from_spec byte h_byte_cases
     as ⟨condition, h_condition⟩
-  have h_condition_cases : condition = 0#u8 ∨ condition = 1#u8 := by
-    simpa only [h_condition] using h_byte_cases
-  have h_condition_value : condition.val = borrow.val / 2 ^ 31 := by
-    rw [h_condition, h_byte, h_flag_value]
-  step with conditional_add_l_spec difference condition h_difference h_condition_cases
+  simp only [h_condition]
+  step with conditional_add_l_spec difference byte h_difference h_byte_cases
     as ⟨carry, result, h_result, h_carry, _h_last, h_sum⟩
   have h_result_bound := asNat_bounded result h_result
-  have h_carry_cases : carry.val / limbRadix = 0 ∨ carry.val / limbRadix = 1 := by
-    simp only [limbRadix] at h_carry ⊢
-    omega
   refine ⟨h_result, ?_⟩
-  rcases h_condition_cases with h_condition | h_condition <;>
-    rcases h_carry_cases with h_carry | h_carry <;>
-    simp only [h_condition, UScalar.ofNatCore_val_eq,
-      show (0#u8) ≠ 1#u8 by decide, ↓reduceIte] at h_condition_value h_sum <;>
-    simp only [← h_condition_value, h_carry, Nat.mul_zero, Nat.mul_one,
-      Nat.add_zero] at h_value h_sum <;> split_ifs <;> omega
+  grind only [montgomeryRadix, limbRadix, UScalar.ofNatCore_val_eq]
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
