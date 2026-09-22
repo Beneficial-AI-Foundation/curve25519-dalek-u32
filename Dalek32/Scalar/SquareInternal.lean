@@ -38,15 +38,6 @@ theorem square_internal_spec (a : Scalar29)
       wideAsNat result = asNat a ^ 2 ∧
       (∀ i < 17, result[i]!.val < 2 ^ 62) ⦄ := by
   simp only [limbRadix, Array.getElem!_Nat_eq] at h_a
-  have h0 := h_a 0 (by decide)
-  have h1 := h_a 1 (by decide)
-  have h2 := h_a 2 (by decide)
-  have h3 := h_a 3 (by decide)
-  have h4 := h_a 4 (by decide)
-  have h5 := h_a 5 (by decide)
-  have h6 := h_a 6 (by decide)
-  have h7 := h_a 7 (by decide)
-  have h8 := h_a 8 (by decide)
   unfold square_internal
   -- Normalize the fixed array lookups before symbolic execution.
   simp only [index_eq, Nat.reduceLT, Array.index_usize, Array.getElem?_Usize_eq, Array.make,
@@ -62,14 +53,10 @@ theorem square_internal_spec (a : Scalar29)
          · exact (h_a _ (by decide)).le)
     | (step -threadGrindState -grind -assumTac with U64.add_spec
          as ⟨sum, h_sum⟩ by
-         rw [U64.max_eq]
          clear! a
-         omega)
-    | (step -threadGrindState -grind -assumTac with U32.mul_spec
-         as ⟨doubled, h_doubled⟩ by
-         simp only [UScalar.ofNatCore_val_eq, U32.max_eq]
-         omega
-       have h_doubled_bound : doubled.val ≤ 2 ^ 30 := by omega)
+         grind only [U64.max_eq])
+    | (step -threadGrindState -assumTac with U32.mul_spec as ⟨doubled, h_doubled⟩
+       have h_doubled_bound : doubled.val ≤ 2 ^ 30 := by grind only)
   constructor
   · simp only [wideAsNat, asNat, Array.uScalarToNatRadix,
       UScalar.ofNatCore_val_eq, pow_mul]
