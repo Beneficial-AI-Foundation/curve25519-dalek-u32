@@ -30,13 +30,13 @@ private theorem index_eq (a : Scalar29) (j : Usize) (h_j : j.val < 9) :
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::square_internal`**
 
-Returns the exact square with coefficients below `2^62`. -/
+Returns the exact square with coefficients below `5 * 2^59`. -/
 @[step]
 theorem square_internal_spec (a : Scalar29)
     (h_a : ∀ i < 9, a[i]!.val < limbRadix) :
     square_internal a ⦃ (result : Array U64 17#usize) =>
       wideAsNat result = asNat a ^ 2 ∧
-      (∀ i < 17, result[i]!.val < 2 ^ 62) ⦄ := by
+      (∀ i < 17, result[i]!.val < 5 * 2 ^ 59) ⦄ := by
   simp only [limbRadix, Array.getElem!_Nat_eq] at h_a
   unfold square_internal
   -- Normalize the fixed array lookups before symbolic execution.
@@ -46,11 +46,11 @@ theorem square_internal_spec (a : Scalar29)
   -- Each coefficient contains at most five products bounded by `2^30 * 2^29`.
   repeat' first
     | (step -threadGrindState -grind -assumTac with m_spec as ⟨product, h_product⟩
-       have h_product_bound : product.val ≤ 2 ^ 30 * 2 ^ 29 := by
+       have h_product_bound : product.val ≤ 2 ^ 30 * (2 ^ 29 - 1) := by
          rw [h_product]
          apply Nat.mul_le_mul
          · first | assumption | exact (h_a _ (by decide)).le.trans (by decide)
-         · exact (h_a _ (by decide)).le)
+         · exact Nat.le_pred_of_lt (h_a _ (by decide)))
     | (step -threadGrindState -grind -assumTac with U64.add_spec
          as ⟨sum, h_sum⟩ by
          clear! a
