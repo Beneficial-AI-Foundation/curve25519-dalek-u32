@@ -41,8 +41,9 @@ theorem Array.uScalarToNatRadix_limb_le {ty : UScalarTy} {n : Usize}
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
-theorem Array.toNatField2625_congr {ty : UScalarTy}
-    (x y : Array (UScalar ty) 10#usize) (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
+theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
+    (x : Array (UScalar ty) 10#usize) (y : Array (UScalar ty') 10#usize)
+    (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
       x.uScalarToNatField2625 = y.uScalarToNatField2625 := by
   unfold uScalarToNatField2625
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
@@ -154,6 +155,7 @@ theorem Nat.or_two_pow_eq_add_of_lt {a b i : Nat} (h : a < 2 ^ i) :
     a ||| b * 2 ^ i = a + b * 2 ^ i := by
   rw [Nat.lor_comm, Nat.mul_comm, ← Nat.two_pow_add_eq_or_of_lt h, Nat.add_comm]
 
+
 /-- Adding a low part `m < l` to a multiple of `l` commutes with reduction modulo `k * l` -/
 theorem Nat.add_mul_mod_mul_right_of_lt {m n k l : Nat} (hm : m < l) :
     (m + n * l) % (k * l) = m + n * l % (k * l) := by
@@ -167,3 +169,20 @@ theorem Nat.add_mul_mod_mul_right_of_lt {m n k l : Nat} (hm : m < l) :
     have hmk : m < k * l := Nat.lt_of_lt_of_le hm (Nat.le_mul_of_pos_left l hk)
     rw [Nat.add_mod, Nat.mod_eq_of_lt hmk, Nat.mod_eq_of_lt hlt]
   · simp [Nat.eq_zero_of_not_pos hk]
+
+
+/-- Sums over a finset agree up to `d` when the summands agree except at a subset whose combined
+contribution differs by `d`. -/
+theorem sum_eq_sum_add_of_subset {ι M : Type*} [AddCommMonoid M] {s : Finset ι} {f g : ι → M}
+    {t : Finset ι} (d : M) (ht : t ⊆ s) (heq : ∀ j ∈ s, j ∉ t → f j = g j)
+    (hd : ∑ j ∈ t, f j = (∑ j ∈ t, g j) + d) :
+    ∑ j ∈ s, f j = (∑ j ∈ s, g j) + d := by
+  classical
+  have : ∀ x ∈ s \ t, f x = g x := by
+    intro x hx
+    exact heq x (by rw [mem_sdiff] at hx; exact hx.1) (by rw [mem_sdiff] at hx; exact hx.2)
+  calc
+    _ = (∑ j ∈ s \ t, f j) + ∑ j ∈ t, f j := (sum_sdiff (by exact ht)).symm
+    _ = (∑ j ∈ s \ t, g j) + ∑ j ∈ t, f j := by rw [sum_congr (rfl) ‹_›]
+    _ = (∑ j ∈ s \ t, g j) + (∑ j ∈ t, g j) + d := by rw [hd, ← add_assoc]
+    _ = (∑ j ∈ s, g j) + d := by rw [sum_sdiff (by exact ht)]
