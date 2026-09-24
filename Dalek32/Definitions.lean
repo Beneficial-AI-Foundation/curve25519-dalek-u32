@@ -66,6 +66,10 @@ namespace backend.serial.u32.scalar.Scalar29
 /-- The radix of a single 29-bit scalar limb. -/
 def limbRadix : Nat := 2 ^ 29
 
+/-- Every limb fits in the radix-`2^29` representation. -/
+def IsNormalized (self : Scalar29) : Prop :=
+  ∀ j < 9, self[j]!.val < limbRadix
+
 /-- The Montgomery radix for nine radix-`2^29` limbs. -/
 def montgomeryRadix : Nat := 2 ^ 261
 
