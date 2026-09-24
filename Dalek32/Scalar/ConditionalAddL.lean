@@ -115,13 +115,9 @@ theorem conditional_add_l_loop.body_spec (condition : subtle.Choice)
       rw [h_digit_value]
       exact Nat.mod_lt _ (by decide)
     have h_self' : IsNormalized (self.set iter.start digit) := by
-      intro j hj
-      by_cases heq : iter.start.val = j
-      · rw [Array.getElem!_Nat_set_eq self iter.start j digit
-          ⟨heq, by simpa only [Array.length_eq, UScalar.ofNatCore_val_eq] using hj⟩]
-        exact h_digit_bound
-      · rw [Array.getElem!_Nat_set_ne self iter.start j digit heq]
-        exact h_self j hj
+      clear * - h_self h_digit_bound
+      simp only [IsNormalized, Array.getElem!_Nat_eq, Array.set_val_eq] at *
+      grind
     have h_update := Array.uScalarToNatRadix_set self 29 iter.start digit hi
     change asNat (self.set iter.start digit) +
         2 ^ (29 * iter.start.val) * self[iter.start.val]!.val =
