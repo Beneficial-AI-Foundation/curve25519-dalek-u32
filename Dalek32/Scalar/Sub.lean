@@ -27,7 +27,7 @@ def Invariant (a b : Scalar29) (iter : core.ops.range.Range Usize)
     (difference : Scalar29) (borrow : U32) : Prop :=
   iter.end = 9#usize ∧
   iter.start.val ≤ 9 ∧
-  (∀ j < 9, difference[j]!.val < limbRadix) ∧
+  IsNormalized difference ∧
   (∀ j, iter.start.val ≤ j → j < 9 → difference[j]!.val = 0) ∧
   asNat difference + (∑ j ∈ Finset.range iter.start.val, 2 ^ (29 * j) * b[j]!.val) =
     (∑ j ∈ Finset.range iter.start.val, 2 ^ (29 * j) * a[j]!.val) +
@@ -35,29 +35,26 @@ def Invariant (a b : Scalar29) (iter : core.ops.range.Range Usize)
 
 end Sub
 
-namespace sub_loop
-
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::sub` (loop body)**
 
-Preserves the difference prefix and advances the iterator. -/
+Preserves the difference invariant on continuation and completion. -/
 @[step]
-theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usize)
+theorem sub_loop.body_spec (a b : Scalar29) (iter : core.ops.range.Range Usize)
     (difference : Scalar29) (borrow : U32)
-    (h_a : ∀ j < 9, a[j]!.val < limbRadix)
-    (h_b : ∀ j < 9, b[j]!.val < limbRadix)
-    (h_mask : mask.val = limbRadix - 1)
+    (h_a : IsNormalized a) (h_b : IsNormalized b)
     (h_inv : Sub.Invariant a b iter difference borrow) :
-    body a b mask iter difference borrow ⦃
+    sub_loop.body a b 0x1fffffff#u32 iter difference borrow ⦃
       (result : ControlFlow (core.ops.range.Range Usize × Scalar29 × U32) (Scalar29 × U32)) =>
       match result with
       | .done (difference', borrow') =>
-        iter.start.val = 9 ∧ difference' = difference ∧ borrow' = borrow
+        iter.start.val = 9 ∧ difference' = difference ∧ borrow' = borrow ∧
+        Sub.Invariant a b iter difference' borrow'
       | .cont (iter', difference', borrow') =>
         Sub.Invariant a b iter' difference' borrow' ∧
         iter'.start.val = iter.start.val + 1 ⦄ := by
   rcases h_inv with ⟨h_end, h_start, h_difference, h_suffix, h_value⟩
-  unfold body
+  unfold sub_loop.body
   step -threadGrindState -grind as ⟨next, iter', h_next, h_end'⟩
   simp only [h_end, UScalar.ofNatCore_val_eq] at h_next
   by_cases hi : iter.start.val < 9
@@ -89,12 +86,13 @@ theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usi
       as ⟨_limb, back, _h_limb, h_back⟩
     step as ⟨digit, h_digit⟩
     have h_digit_value : digit.val = borrow'.val % limbRadix := by
-      simp only [h_digit, UScalar.val_and, h_mask, limbRadix,
-        Nat.and_two_pow_sub_one_eq_mod]
+      rw [h_digit, UScalar.val_and]
+      change borrow'.val &&& (2 ^ 29 - 1) = borrow'.val % 2 ^ 29
+      simp only [Nat.and_two_pow_sub_one_eq_mod]
     have h_digit_bound : digit.val < limbRadix := by grind only [limbRadix]
-    have h_normalized : ∀ j < 9, (difference.set iter.start digit)[j]!.val < limbRadix := by
+    have h_normalized : IsNormalized (difference.set iter.start digit) := by
       clear * - h_difference h_digit_bound
-      simp only [Array.getElem!_Nat_eq, Array.set_val_eq] at *
+      simp only [IsNormalized, Array.getElem!_Nat_eq, Array.set_val_eq] at *
       grind
     have h_suffix' : ∀ j, iter'.start.val ≤ j → j < 9 →
         (difference.set iter.start digit)[j]!.val = 0 := by
@@ -118,9 +116,7 @@ theorem body_spec (a b : Scalar29) (mask : U32) (iter : core.ops.range.Range Usi
     grind only [limbRadix]
   · simp only [hi, ↓reduceIte] at h_next
     simp only [h_next.1, spec_ok]
-    exact ⟨by omega, trivial, trivial⟩
-
-end sub_loop
+    exact ⟨by omega, trivial, trivial, h_end, h_start, h_difference, h_suffix, h_value⟩
 
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::sub` (loop)**
@@ -128,11 +124,11 @@ end sub_loop
 Returns the normalized radix difference with borrow conservation. -/
 @[step]
 theorem sub_loop_spec (iter : core.ops.range.Range Usize) (a b difference : Scalar29)
-    (mask borrow : U32) (h_a : ∀ j < 9, a[j]!.val < limbRadix)
-    (h_b : ∀ j < 9, b[j]!.val < limbRadix) (h_mask : mask.val = limbRadix - 1)
+    (borrow : U32) (h_a : IsNormalized a) (h_b : IsNormalized b)
     (h_inv : Sub.Invariant a b iter difference borrow) :
-    sub_loop iter a b difference mask borrow ⦃ (result : Scalar29) (borrow' : U32) =>
-      (∀ j < 9, result[j]!.val < limbRadix) ∧
+    sub_loop iter a b difference 0x1fffffff#u32 borrow
+      ⦃ (result : Scalar29) (borrow' : U32) =>
+      IsNormalized result ∧
       asNat result + asNat b = asNat a + montgomeryRadix * (borrow'.val / 2 ^ 31) ⦄ := by
   unfold sub_loop
   refine loop.spec_decr_nat
@@ -140,13 +136,13 @@ theorem sub_loop_spec (iter : core.ops.range.Range Usize) (a b difference : Scal
     (fun (iter, difference, borrow) => Sub.Invariant a b iter difference borrow)
     _ _ _ ?_ h_inv
   rintro ⟨iter, difference, borrow⟩ h_state
-  apply spec_mono (sub_loop.body_spec a b mask iter difference borrow h_a h_b h_mask h_state)
+  apply spec_mono (sub_loop.body_spec a b iter difference borrow h_a h_b h_state)
   intro flow h_flow
-  rcases h_state with ⟨_h_end, h_start, h_difference, _h_suffix, h_value⟩
   cases flow with
   | done result =>
     rcases result with ⟨difference', borrow'⟩
-    rcases h_flow with ⟨h_done, rfl, rfl⟩
+    rcases h_flow with ⟨h_done, _h_difference_eq, _h_borrow_eq, h_final⟩
+    rcases h_final with ⟨_h_end, _h_start, h_difference, _h_suffix, h_value⟩
     refine ⟨h_difference, ?_⟩
     rw [h_done] at h_value
     change asNat difference' + asNat b =
@@ -158,23 +154,24 @@ theorem sub_loop_spec (iter : core.ops.range.Range Usize) (a b difference : Scal
 
 Returns the normalized canonical difference after at most one order correction. -/
 @[step]
-theorem sub_spec (a b : Scalar29) (h_a : ∀ j < 9, a[j]!.val < limbRadix)
-    (h_b : ∀ j < 9, b[j]!.val < limbRadix)
+theorem sub_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
     (h_lower : asNat b ≤ asNat a + order) (h_upper : asNat a < asNat b + order) :
     sub a b ⦃ (result : Scalar29) =>
-      (∀ j < 9, result[j]!.val < limbRadix) ∧
+      IsNormalized result ∧
       asNat result + asNat b = asNat a + (if asNat a < asNat b then order else 0) ∧
       asNat result < order ⦄ := by
   unfold sub
   step as ⟨shifted, h_shifted⟩
   step as ⟨mask, h_mask⟩
-  have h_mask_value : mask.val = limbRadix - 1 := by
+  have h_mask_eq : mask = 0x1fffffff#u32 := by
+    apply UScalar.eq_of_val_eq
     rw [h_mask, h_shifted, U32.size, U32.numBits]
     rfl
+  simp only [h_mask_eq]
   have h_initial : Sub.Invariant a b { start := 0#usize, «end» := 9#usize } ZERO 0#u32 := by
     refine ⟨rfl, by decide, ?_, fun j _ hj => ZERO_limbs j hj, by simp⟩
-    grind only [ZERO_limbs, limbRadix]
-  step with sub_loop_spec _ _ _ _ _ _ h_a h_b h_mask_value h_initial
+    grind only [ZERO_limbs, IsNormalized, limbRadix]
+  step with sub_loop_spec _ _ _ _ _ h_a h_b h_initial
     as ⟨difference, borrow, h_difference, h_value⟩
   have h_difference_bound := asNat_bounded difference h_difference
   step as ⟨flag, h_flag⟩
