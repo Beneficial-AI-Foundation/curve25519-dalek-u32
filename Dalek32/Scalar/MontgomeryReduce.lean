@@ -547,7 +547,7 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
   conv at h_sub_spec => lhs; unfold constants.L
   refine spec_mono h_sub_spec ?_
   intro result ⟨h_result, h_sub, h_canonical⟩
-  simp only [Array.getElem!_Nat_eq] at h_result
+  simp only [IsNormalized, Array.getElem!_Nat_eq] at h_result
   have h_residue : asNat result % order = quotient % order := by
     rw [constants.L_spec, h_pre] at h_sub
     have h := congrArg (fun n : Nat => n % order) h_sub
