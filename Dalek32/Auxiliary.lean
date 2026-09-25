@@ -46,29 +46,19 @@ theorem Array.uScalarToNatRadix_set {ty : UScalarTy} {n : Usize}
     (hi : i.val < n.val) :
     (a.set i x).uScalarToNatRadix exp + 2 ^ (exp * i.val) * a[i.val]!.val =
       a.uScalarToNatRadix exp + 2 ^ (exp * i.val) * x.val := by
-  classical
-  have hi_mem : i.val ∈ Finset.range n.val := Finset.mem_range.mpr hi
-  have h_old := Finset.sum_erase_add (Finset.range n.val)
-    (fun j => 2 ^ (exp * j) * a[j]!.val) hi_mem
-  have h_new := Finset.sum_erase_add (Finset.range n.val)
-    (fun j => 2 ^ (exp * j) * (a.set i x)[j]!.val) hi_mem
-  have h_rest :
-      (∑ j ∈ (Finset.range n.val).erase i.val, 2 ^ (exp * j) * (a.set i x)[j]!.val) =
-        ∑ j ∈ (Finset.range n.val).erase i.val, 2 ^ (exp * j) * a[j]!.val := by
-    apply Finset.sum_congr rfl
-    intro j hj
-    rw [Array.getElem!_Nat_set_ne a i j x (Ne.symm (Finset.ne_of_mem_erase hj))]
-  have h_at : (a.set i x)[i.val]! = x :=
-    Array.getElem!_Nat_set_eq a i i.val x ⟨rfl, by simpa only [Array.length_eq] using hi⟩
-  rw [h_rest, h_at] at h_new
-  unfold Array.uScalarToNatRadix
-  rw [← h_new, ← h_old]
-  ac_rfl
+  unfold uScalarToNatRadix
+  simp only [← sum_sdiff (by rewrite [singleton_subset_iff, mem_range]; exact hi), sum_singleton]
+  simp_lists
+  simp only [Nat.add_assoc]
+  nth_rewrite 2 [Nat.add_comm]; rewrite [Nat.add_right_cancel_iff]
+  exact sum_congr (by rfl)
+    (by intro j hj; rewrite [mem_sdiff, mem_range, mem_singleton] at hj; simp_lists)
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
-theorem Array.toNatField2625_congr {ty : UScalarTy}
-    (x y : Array (UScalar ty) 10#usize) (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
+theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
+    (x : Array (UScalar ty) 10#usize) (y : Array (UScalar ty') 10#usize)
+    (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
       x.uScalarToNatField2625 = y.uScalarToNatField2625 := by
   unfold uScalarToNatField2625
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
@@ -180,6 +170,7 @@ theorem Nat.or_two_pow_eq_add_of_lt {a b i : Nat} (h : a < 2 ^ i) :
     a ||| b * 2 ^ i = a + b * 2 ^ i := by
   rw [Nat.lor_comm, Nat.mul_comm, ← Nat.two_pow_add_eq_or_of_lt h, Nat.add_comm]
 
+
 /-- Adding a low part `m < l` to a multiple of `l` commutes with reduction modulo `k * l` -/
 theorem Nat.add_mul_mod_mul_right_of_lt {m n k l : Nat} (hm : m < l) :
     (m + n * l) % (k * l) = m + n * l % (k * l) := by
@@ -193,3 +184,20 @@ theorem Nat.add_mul_mod_mul_right_of_lt {m n k l : Nat} (hm : m < l) :
     have hmk : m < k * l := Nat.lt_of_lt_of_le hm (Nat.le_mul_of_pos_left l hk)
     rw [Nat.add_mod, Nat.mod_eq_of_lt hmk, Nat.mod_eq_of_lt hlt]
   · simp [Nat.eq_zero_of_not_pos hk]
+
+
+/-- Sums over a finset agree up to `d` when the summands agree except at a subset whose combined
+contribution differs by `d`. -/
+theorem sum_eq_sum_add_of_subset {ι M : Type*} [AddCommMonoid M] {s : Finset ι} {f g : ι → M}
+    {t : Finset ι} (d : M) (ht : t ⊆ s) (heq : ∀ j ∈ s, j ∉ t → f j = g j)
+    (hd : ∑ j ∈ t, f j = (∑ j ∈ t, g j) + d) :
+    ∑ j ∈ s, f j = (∑ j ∈ s, g j) + d := by
+  classical
+  have : ∀ x ∈ s \ t, f x = g x := by
+    intro x hx
+    exact heq x (by rw [mem_sdiff] at hx; exact hx.1) (by rw [mem_sdiff] at hx; exact hx.2)
+  calc
+    _ = (∑ j ∈ s \ t, f j) + ∑ j ∈ t, f j := (sum_sdiff (by exact ht)).symm
+    _ = (∑ j ∈ s \ t, g j) + ∑ j ∈ t, f j := by rw [sum_congr (rfl) ‹_›]
+    _ = (∑ j ∈ s \ t, g j) + (∑ j ∈ t, g j) + d := by rw [hd, ← add_assoc]
+    _ = (∑ j ∈ s, g j) + d := by rw [sum_sdiff (by exact ht)]
