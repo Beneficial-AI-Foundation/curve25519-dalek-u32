@@ -46,24 +46,13 @@ theorem Array.uScalarToNatRadix_set {ty : UScalarTy} {n : Usize}
     (hi : i.val < n.val) :
     (a.set i x).uScalarToNatRadix exp + 2 ^ (exp * i.val) * a[i.val]!.val =
       a.uScalarToNatRadix exp + 2 ^ (exp * i.val) * x.val := by
-  classical
-  have hi_mem : i.val ∈ Finset.range n.val := Finset.mem_range.mpr hi
-  have h_old := Finset.sum_erase_add (Finset.range n.val)
-    (fun j => 2 ^ (exp * j) * a[j]!.val) hi_mem
-  have h_new := Finset.sum_erase_add (Finset.range n.val)
-    (fun j => 2 ^ (exp * j) * (a.set i x)[j]!.val) hi_mem
-  have h_rest :
-      (∑ j ∈ (Finset.range n.val).erase i.val, 2 ^ (exp * j) * (a.set i x)[j]!.val) =
-        ∑ j ∈ (Finset.range n.val).erase i.val, 2 ^ (exp * j) * a[j]!.val := by
-    apply Finset.sum_congr rfl
-    intro j hj
-    rw [Array.getElem!_Nat_set_ne a i j x (Ne.symm (Finset.ne_of_mem_erase hj))]
-  have h_at : (a.set i x)[i.val]! = x :=
-    Array.getElem!_Nat_set_eq a i i.val x ⟨rfl, by simpa only [Array.length_eq] using hi⟩
-  rw [h_rest, h_at] at h_new
-  unfold Array.uScalarToNatRadix
-  rw [← h_new, ← h_old]
-  ac_rfl
+  unfold uScalarToNatRadix
+  simp only [← sum_sdiff (by rewrite [singleton_subset_iff, mem_range]; exact hi), sum_singleton]
+  simp_lists
+  simp only [Nat.add_assoc]
+  nth_rewrite 2 [Nat.add_comm]; rewrite [Nat.add_right_cancel_iff]
+  exact sum_congr (by rfl)
+    (by intro j hj; rewrite [mem_sdiff, mem_range, mem_singleton] at hj; simp_lists)
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
