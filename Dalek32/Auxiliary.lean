@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: András Némedy Varga, Wojciech Aleksander Wołoszyn
 -/
 import Dalek32.Definitions
+import Dalek32.Lint.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Data.Nat.ModEq
 import Mathlib.Tactic.NormNum
@@ -38,6 +39,31 @@ theorem Array.uScalarToNatRadix_limb_le {ty : UScalarTy} {n : Usize}
     (f := fun j => 2 ^ (exp * j) * limbs[j]!.val)
     (fun _ _ => Nat.zero_le _)
     (Finset.mem_range.mpr hi)
+
+/-- Replacing one limb changes its weighted contribution. -/
+theorem Array.uScalarToNatRadix_set {ty : UScalarTy} {n : Usize}
+    (a : Array (UScalar ty) n) (exp : Nat) (i : Usize) (x : UScalar ty)
+    (hi : i.val < n.val) :
+    (a.set i x).uScalarToNatRadix exp + 2 ^ (exp * i.val) * a[i.val]!.val =
+      a.uScalarToNatRadix exp + 2 ^ (exp * i.val) * x.val := by
+  classical
+  have hi_mem : i.val ∈ Finset.range n.val := Finset.mem_range.mpr hi
+  have h_old := Finset.sum_erase_add (Finset.range n.val)
+    (fun j => 2 ^ (exp * j) * a[j]!.val) hi_mem
+  have h_new := Finset.sum_erase_add (Finset.range n.val)
+    (fun j => 2 ^ (exp * j) * (a.set i x)[j]!.val) hi_mem
+  have h_rest :
+      (∑ j ∈ (Finset.range n.val).erase i.val, 2 ^ (exp * j) * (a.set i x)[j]!.val) =
+        ∑ j ∈ (Finset.range n.val).erase i.val, 2 ^ (exp * j) * a[j]!.val := by
+    apply Finset.sum_congr rfl
+    intro j hj
+    rw [Array.getElem!_Nat_set_ne a i j x (Ne.symm (Finset.ne_of_mem_erase hj))]
+  have h_at : (a.set i x)[i.val]! = x :=
+    Array.getElem!_Nat_set_eq a i i.val x ⟨rfl, by simpa only [Array.length_eq] using hi⟩
+  rw [h_rest, h_at] at h_new
+  unfold Array.uScalarToNatRadix
+  rw [← h_new, ← h_old]
+  ac_rfl
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
@@ -102,7 +128,7 @@ theorem toNat_eq (x : FieldElement2625) : x.toNat = Array.uScalarToNatField2625 
 /-- Two field eLements with pointwise-equal limb values have equal `Nat` representations. -/
 theorem toNat_congr (x y : FieldElement2625) (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
     x.toNat = y.toNat := by
-   rw [toNat_eq, toNat_eq]; rw [Array.toNatField2625_congr]; exact h
+  rw [toNat_eq, toNat_eq]; rw [Array.toNatField2625_congr]; exact h
 
 
 end backend.serial.u32.field.FieldElement2625
