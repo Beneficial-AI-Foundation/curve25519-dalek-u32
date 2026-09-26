@@ -21,6 +21,7 @@ import Dalek32.Scalar.ConditionalAddL
 import Dalek32.Scalar.Index
 import Dalek32.Scalar.IndexMut
 import Dalek32.Scalar.M
+import Dalek32.Scalar.MontgomeryReduce
 import Dalek32.Scalar.SquareInternal
 import Dalek32.Scalar.Sub
 import Dalek32.Scalar.Zero
