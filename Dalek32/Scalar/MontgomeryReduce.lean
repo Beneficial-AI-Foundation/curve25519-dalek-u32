@@ -191,7 +191,7 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
     (h_range : wideAsNat limbs < montgomeryRadix * order) :
     montgomery_reduce limbs ⦃ (result : Scalar29) =>
       (asNat result * montgomeryRadix) % order = wideAsNat limbs % order ∧
-      (∀ i < 9, result[i]!.val < limbRadix) ∧
+      IsNormalized result ∧
       asNat result < order ⦄ := by
   simp only [Array.getElem!_Nat_eq] at h_bounds
   unfold montgomery_reduce Insts.CoreOpsIndexIndexUsizeU32.index
@@ -534,7 +534,7 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       pow_mul, Finset.sum_range_succ, Finset.sum_range_zero, zero_add,
       Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
       List.getElem!_cons_succ, quotient, limbRadix, h_r8, pow_zero, pow_one, one_mul]
-  have h_normalized : ∀ i < 9, pre[i]!.val < limbRadix := by
+  have h_normalized : IsNormalized pre := by
     clear * - hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7 h_r8 h_top
     intro i hi
     interval_cases i <;>
@@ -547,7 +547,6 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
   conv at h_sub_spec => lhs; unfold constants.L
   refine spec_mono h_sub_spec ?_
   intro result ⟨h_result, h_sub, h_canonical⟩
-  simp only [IsNormalized, Array.getElem!_Nat_eq] at h_result
   have h_residue : asNat result % order = quotient % order := by
     rw [constants.L_spec, h_pre] at h_sub
     have h := congrArg (fun n : Nat => n % order) h_sub
