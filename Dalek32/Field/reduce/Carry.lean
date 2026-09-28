@@ -13,9 +13,9 @@ import Dalek32.Field.reduce.LOW26BITS
 # Spec theorem for `reduce.carry`
 
 `reduce.carry z i` carries limb `i` into limb `i + 1` where `z` is an `Array U64 10#usize` and
-`i < 9` is an index. The radix alternates between `2^26` and `2^25`, so limb `i` has weight `2^w`
-where `w = 26 - i % 2`. During a carry, the high part `z[i] >>> w` is added to `z[i + 1]` and `z[i]`
-is masked to its low `w` bits. All the other limbs remain unchanged.
+`i < 9` is an index. The radix alternates between `2^26` and `2^25`, so limb `i + 1` has `2^w` times
+the weight of limb`i`, where `w = 26 - i % 2`. During a carry, the high part `z[i] >>> w` is added
+to `z[i + 1]` and `z[i]` is masked to its low `w` bits. All the other limbs remain unchanged.
 Source: 'curve25519-dalek/src/backend/serial/u32/field.rs', lines 343:8-354:9
 -/
 
