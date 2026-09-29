@@ -158,7 +158,7 @@ theorem sub_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
     (h_lower : asNat b ≤ asNat a + order) (h_upper : asNat a < asNat b + order) :
     sub a b ⦃ (result : Scalar29) =>
       IsNormalized result ∧
-      asNat result + asNat b = asNat a + (if asNat a < asNat b then order else 0) ∧
+      (asNat result + asNat b) % order = asNat a % order ∧
       asNat result < order ⦄ := by
   unfold sub
   step as ⟨shifted, h_shifted⟩
@@ -186,7 +186,12 @@ theorem sub_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
   step with conditional_add_l_spec difference byte h_difference h_byte_cases
     as ⟨carry, result, h_result, h_carry, _h_last, h_sum⟩
   have h_result_bound := asNat_bounded result h_result
-  refine ⟨h_result, ?_⟩
-  grind only [montgomeryRadix, limbRadix, UScalar.ofNatCore_val_eq]
+  have h_correct :
+      asNat result + asNat b = asNat a + (if asNat a < asNat b then order else 0) ∧
+      asNat result < order := by
+    grind only [montgomeryRadix, limbRadix, UScalar.ofNatCore_val_eq]
+  refine ⟨h_result, ?_, h_correct.2⟩
+  rw [h_correct.1]
+  split_ifs <;> simp only [Nat.add_mod, Nat.mod_self, Nat.add_zero, Nat.mod_mod]
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
