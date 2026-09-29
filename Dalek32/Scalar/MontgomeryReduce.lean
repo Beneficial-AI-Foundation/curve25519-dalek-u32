@@ -549,9 +549,7 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
   intro result ⟨h_result, h_sub, h_canonical⟩
   have h_residue : asNat result % order = quotient % order := by
     rw [constants.L_spec, h_pre] at h_sub
-    have h := congrArg (fun n : Nat => n % order) h_sub
-    split_ifs at h <;>
-      simpa only [Nat.add_mod, Nat.mod_self, Nat.zero_mod, Nat.add_zero, Nat.mod_mod] using h
+    simpa only [Nat.add_mod, Nat.mod_self, Nat.add_zero, Nat.mod_mod] using h_sub
   have h_scaled : (quotient * montgomeryRadix) % order = wideAsNat limbs % order := by
     have h := congrArg (fun n : Nat => n % order) h_identity
     simpa only [Nat.add_mul_mod_self_right] using h.symm
