@@ -11,9 +11,7 @@ import Dalek32.Scalar.Index
 import Dalek32.Scalar.M
 import Dalek32.Scalar.Sub
 import Mathlib.Tactic.IntervalCases
-import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Zify
 
 /-!
 # Spec theorem for `montgomery_reduce`
@@ -142,44 +140,6 @@ theorem part2_spec (sum : U64) :
     simpa only [Nat.mul_comm, Nat.add_comm] using Nat.mod_add_div sum.val limbRadix
 
 end montgomery_reduce
-
-/-- The seventeen carry equations telescope to the Montgomery identity. -/
-private theorem reduction_identity (B l0 l1 l2 l3 l4 l8 : Nat)
-    (t0 t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 : Nat)
-    (n0 n1 n2 n3 n4 n5 n6 n7 n8 : Nat)
-    (c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 : Nat)
-    (r0 r1 r2 r3 r4 r5 r6 r7 : Nat)
-    (h0 : t0 + n0 * l0 = c0 * B)
-    (h1 : c0 + t1 + n0 * l1 + n1 * l0 = c1 * B)
-    (h2 : c1 + t2 + n0 * l2 + n1 * l1 + n2 * l0 = c2 * B)
-    (h3 : c2 + t3 + n0 * l3 + n1 * l2 + n2 * l1 + n3 * l0 = c3 * B)
-    (h4 : c3 + t4 + n0 * l4 + n1 * l3 + n2 * l2 + n3 * l1 + n4 * l0 = c4 * B)
-    (h5 : c4 + t5 + n1 * l4 + n2 * l3 + n3 * l2 + n4 * l1 + n5 * l0 = c5 * B)
-    (h6 : c5 + t6 + n2 * l4 + n3 * l3 + n4 * l2 + n5 * l1 + n6 * l0 = c6 * B)
-    (h7 : c6 + t7 + n3 * l4 + n4 * l3 + n5 * l2 + n6 * l1 + n7 * l0 = c7 * B)
-    (h8 : c7 + t8 + n0 * l8 + n4 * l4 + n5 * l3 + n6 * l2 + n7 * l1 + n8 * l0 = c8 * B)
-    (h9 : c8 + t9 + n1 * l8 + n5 * l4 + n6 * l3 + n7 * l2 + n8 * l1 = c9 * B + r0)
-    (h10 : c9 + t10 + n2 * l8 + n6 * l4 + n7 * l3 + n8 * l2 = c10 * B + r1)
-    (h11 : c10 + t11 + n3 * l8 + n7 * l4 + n8 * l3 = c11 * B + r2)
-    (h12 : c11 + t12 + n4 * l8 + n8 * l4 = c12 * B + r3)
-    (h13 : c12 + t13 + n5 * l8 = c13 * B + r4)
-    (h14 : c13 + t14 + n6 * l8 = c14 * B + r5)
-    (h15 : c14 + t15 + n7 * l8 = c15 * B + r6)
-    (h16 : c15 + t16 + n8 * l8 = c16 * B + r7) :
-    (t0 + B * t1 + B ^ 2 * t2 + B ^ 3 * t3 + B ^ 4 * t4 + B ^ 5 * t5 + B ^ 6 * t6 + B ^ 7 * t7 +
-      B ^ 8 * t8 + B ^ 9 * t9 + B ^ 10 * t10 + B ^ 11 * t11 + B ^ 12 * t12 + B ^ 13 * t13 +
-      B ^ 14 * t14 + B ^ 15 * t15 + B ^ 16 * t16) +
-      (n0 + B * n1 + B ^ 2 * n2 + B ^ 3 * n3 + B ^ 4 * n4 + B ^ 5 * n5 + B ^ 6 * n6 +
-        B ^ 7 * n7 + B ^ 8 * n8) *
-      (l0 + B * l1 + B ^ 2 * l2 + B ^ 3 * l3 + B ^ 4 * l4 + B ^ 8 * l8) =
-      (r0 + B * r1 + B ^ 2 * r2 + B ^ 3 * r3 + B ^ 4 * r4 + B ^ 5 * r5 + B ^ 6 * r6 +
-        B ^ 7 * r7 + B ^ 8 * c16) * B ^ 9 := by
-  zify at h0 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h15 h16 ⊢
-  linear_combination h0 + h1 * (B : Int) + h2 * (B : Int) ^ 2 + h3 * (B : Int) ^ 3 +
-    h4 * (B : Int) ^ 4 + h5 * (B : Int) ^ 5 + h6 * (B : Int) ^ 6 + h7 * (B : Int) ^ 7 +
-    h8 * (B : Int) ^ 8 + h9 * (B : Int) ^ 9 + h10 * (B : Int) ^ 10 + h11 * (B : Int) ^ 11 +
-    h12 * (B : Int) ^ 12 + h13 * (B : Int) ^ 13 + h14 * (B : Int) ^ 14 + h15 * (B : Int) ^ 15 +
-    h16 * (B : Int) ^ 16
 
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce`**
@@ -472,34 +432,18 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       simp only [adjustment, Array.getElem!_Nat_eq, Array.make,
         List.getElem!_cons_zero, List.getElem!_cons_succ] <;> assumption
   have h_identity : wideAsNat limbs + asNat adjustment * order = quotient * montgomeryRadix := by
-    have h_poly := reduction_identity limbRadix
-      (constants.L[0]!.val) (constants.L[1]!.val) (constants.L[2]!.val) (constants.L[3]!.val)
-      (constants.L[4]!.val) (constants.L[8]!.val)
-      (limbs.val[0]!.val) (limbs.val[1]!.val) (limbs.val[2]!.val) (limbs.val[3]!.val)
-      (limbs.val[4]!.val) (limbs.val[5]!.val) (limbs.val[6]!.val) (limbs.val[7]!.val)
-      (limbs.val[8]!.val) (limbs.val[9]!.val) (limbs.val[10]!.val) (limbs.val[11]!.val)
-      (limbs.val[12]!.val) (limbs.val[13]!.val) (limbs.val[14]!.val) (limbs.val[15]!.val)
-      (limbs.val[16]!.val)
-      n0.val n1.val n2.val n3.val n4.val n5.val n6.val n7.val n8.val
-      c0.val c1.val c2.val c3.val c4.val c5.val c6.val c7.val c8.val c9.val c10.val c11.val
-      c12.val c13.val c14.val c15.val c16.val
-      r0.val r1.val r2.val r3.val r4.val r5.val r6.val r7.val
-    simp only [constants.L, Array.getElem!_Nat_eq, Array.make,
-      List.getElem!_cons_zero, List.getElem!_cons_succ, UScalar.ofNatCore_val_eq]
-      at h_poly row0 row1 row2 row3 row4 row5 row6 row7 row8 row9 row10 row11 row12 row13
-        row14 row15 row16
-    specialize h_poly row0.symm row1.symm row2.symm row3.symm row4.symm row5.symm row6.symm
-      row7.symm row8.symm row9.symm row10.symm row11.symm row12.symm row13.symm row14.symm
-      row15.symm row16.symm
-    have h_radix : montgomeryRadix = (2 ^ 29) ^ 9 := by
-      rw [← pow_mul]
-      exact congrArg (fun n => (2 : Nat) ^ n) (by decide : 261 = 29 * 9)
-    rw [← constants.L_spec, h_radix]
-    simpa only [wideAsNat, asNat, adjustment, quotient, Array.uScalarToNatRadix,
-      UScalar.ofNatCore_val_eq, pow_mul, Finset.sum_range_succ,
-      Finset.sum_range_zero, zero_add, constants.L, Array.getElem!_Nat_eq,
-      Array.make, List.getElem!_cons_zero, List.getElem!_cons_succ,
-      limbRadix, pow_zero, pow_one, one_mul, mul_one, mul_zero, add_zero] using h_poly
+    clear * - row0 row1 row2 row3 row4 row5 row6 row7 row8 row9 row10 row11 row12 row13
+      row14 row15 row16
+    rw [← constants.L_spec]
+    simp only [wideAsNat, asNat, adjustment, quotient, Array.uScalarToNatRadix,
+      montgomeryRadix, limbRadix, UScalar.ofNatCore_val_eq, pow_mul,
+      Finset.sum_range_succ, Finset.sum_range_zero, zero_add,
+      constants.L, Array.getElem!_Nat_eq, Array.make,
+      List.getElem!_cons_zero, List.getElem!_cons_succ,
+      pow_zero, pow_one, one_mul, mul_zero, add_zero]
+      at row0 row1 row2 row3 row4 row5 row6 row7 row8 row9 row10 row11 row12 row13
+        row14 row15 row16 ⊢
+    omega
   clear * - h_range h_adjustment h_identity hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7
   have h_radix_pos : 0 < montgomeryRadix := by
     exact pow_pos (by decide : 0 < (2 : Nat)) 261
