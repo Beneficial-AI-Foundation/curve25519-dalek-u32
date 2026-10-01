@@ -21,6 +21,12 @@ open Aeneas Aeneas.Std Result Aeneas.Std.WP
 
 namespace Curve25519Dalek.backend.serial.u32.scalar.Scalar29
 
+private theorem index_eq (a : Scalar29) (j : Usize) (h_j : j.val < 9) :
+    Insts.CoreOpsIndexIndexUsizeU32.index a j = ok a.val[j.val]! := by
+  obtain ⟨result, h_eq, h_result⟩ := spec_imp_exists
+    (Insts.CoreOpsIndexIndexUsizeU32.index_spec a j h_j)
+  exact h_result ▸ h_eq
+
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::square_internal`**
 
