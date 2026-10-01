@@ -29,26 +29,15 @@ The generated function is one long straight-line computation, so `#decompose` sp
 * `montgomery_reduce_extract`, the eight `part2` rows that read off the result digits
   `r0, …, r7` and the top carry.
 
-Each half is verified against its own half of the Montgomery identity
-(`adjust_identity` and `extract_identity`); `montgomery_reduce_spec` multiplies the second
-by `limbRadix ^ 9`, adds the first, and finishes with the usual conditional subtraction.
+The two halves of the wide value and of the product `n * L` are given names (`lowWide`,
+`highWide`, `adjustPartial`, `extractPartial`), each half is verified against its own half of
+the Montgomery identity (`adjust_identity` and `extract_identity`), and
+`montgomery_reduce_spec` glues the halves together before the final conditional subtraction.
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 
 namespace Curve25519Dalek.backend.serial.u32.scalar.Scalar29
-
-/-- Indexing a fixed-size array below its bound always succeeds.
-
-Note: `Dalek32/Scalar/SquareInternal.lean` declares a private lemma of the same name for
-`Insts.CoreOpsIndexIndexUsizeU32.index` on `Scalar29`; the two are different statements and
-both are local to their file. -/
-private theorem index_eq {α : Type} [Inhabited α] {size : Usize}
-    (a : Array α size) (i : Usize) (hi : i.val < size.val) :
-    Array.index_usize a i = ok a[i.val]! := by
-  obtain ⟨result, h_eq, h_result⟩ := spec_imp_exists
-    (Array.index_usize_spec a i (by simpa only [Array.length_eq] using hi))
-  grind [Array.getElem!_Nat_eq]
 
 namespace montgomery_reduce
 
@@ -57,7 +46,7 @@ namespace montgomery_reduce
 
 Cancels the low radix digit and returns the exact carry. -/
 @[step]
-theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
+theorem part1_spec (sum : U64) (h_sum : sum.val + limbRadix * limbRadix ≤ U64.max) :
     part1 sum ⦃ (carry : U64) (p : U32) =>
       p.val < limbRadix ∧
       carry.val < 2 ^ 35 ∧
@@ -108,7 +97,7 @@ theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
     rw [h_product]
     exact Nat.mul_le_mul h_p_bound.le h_l0_bound.le
   step -threadGrindState -grind with U64.add_spec as ⟨joined, h_joined⟩ by
-    simp only [limbRadix, U64.max_eq] at h_product_bound ⊢
+    simp only [limbRadix, U64.max_eq] at h_sum h_product_bound ⊢
     omega
   step as ⟨carry, h_carry⟩
   have h_carry_value : carry.val = joined.val / limbRadix := by
@@ -181,76 +170,140 @@ set_option linter.hashCommand false in
   letRange 0 85 => montgomery_reduce_adjust
   letRange 1 60 => montgomery_reduce_extract
 
-/-- One `m` multiplication of an accumulation chain. -/
-local macro "mont_mul" : tactic =>
-  `(tactic|
-    (refine spec_bind (m_spec _ _) ?_
-     intro product h_product
-     try simp only [UScalar.ofNatCore_val_eq] at h_product))
+/-! ## Naming the partial sums
 
-/-- One addition of an accumulation chain, together with its overflow side condition.
+`B` denotes `limbRadix`, `t_i` the coefficient `limbs[i]!`, `l_k` the limb `constants.L[k]!`
+(with `l5 = l6 = l7 = 0`) and `n_j` the Montgomery quotient digits.  Compare with the rows of
+"curve25519-dalek/src/backend/serial/u32/scalar.rs", lines 346-364. -/
 
-The row equations established so far are named so that they can be cleared before `grind`
-runs: they are large equations relating every value seen so far, and leaving them in the
-context roughly doubles the time the side conditions take. -/
-local macro "mont_add" rows:(ppSpace colGt ident)* : tactic =>
-  `(tactic|
-    (refine spec_bind (U64.add_spec ?_) ?_
-     on_goal 1 =>
-       clear $rows*
-       grind only [U64.max_eq, limbRadix, UScalar.ofNatCore_val_eq]
-     intro sum h_sum))
+/-- The low half of the wide value, `Σ_{i<9} B^i · t_i`. -/
+private def lowWide (limbs : Array U64 17#usize) : Nat :=
+  limbs[0]!.val + limbRadix * limbs[1]!.val + limbRadix ^ 2 * limbs[2]!.val +
+    limbRadix ^ 3 * limbs[3]!.val + limbRadix ^ 4 * limbs[4]!.val +
+    limbRadix ^ 5 * limbs[5]!.val + limbRadix ^ 6 * limbs[6]!.val +
+    limbRadix ^ 7 * limbs[7]!.val + limbRadix ^ 8 * limbs[8]!.val
 
-/-- The accumulation chain between two `part1`/`part2` rows: the addition of the next
-coefficient followed by `n` multiply-accumulate steps, where `n` is the number of
-`n_j * constants.L[k]!` products that the row accumulates. -/
-local macro "mont_chain" n:num rows:(ppSpace colGt ident)* : tactic =>
-  `(tactic|
-    (mont_add $rows*
-     iterate $n
-       mont_mul
-       mont_add $rows*))
+/-- The high half of the wide value divided by `B^9`, `Σ_{i<8} B^i · t_{9+i}`. -/
+private def highWide (limbs : Array U64 17#usize) : Nat :=
+  limbs[9]!.val + limbRadix * limbs[10]!.val + limbRadix ^ 2 * limbs[11]!.val +
+    limbRadix ^ 3 * limbs[12]!.val + limbRadix ^ 4 * limbs[13]!.val +
+    limbRadix ^ 5 * limbs[14]!.val + limbRadix ^ 6 * limbs[15]!.val +
+    limbRadix ^ 7 * limbs[16]!.val
 
-/-! ## The adjust phase -/
+/-- The part of `n * L` of weight below `B^9`: the coefficient of `B^i` collects the products
+`n_j * l_k` with `j + k = i`, in the order the `part1` rows accumulate them. -/
+private def adjustPartial (n0 n1 n2 n3 n4 n5 n6 n7 n8 : Nat) : Nat :=
+  n0 * constants.L[0]!.val +
+    limbRadix * (n0 * constants.L[1]!.val + n1 * constants.L[0]!.val) +
+    limbRadix ^ 2 * (n0 * constants.L[2]!.val + n1 * constants.L[1]!.val +
+      n2 * constants.L[0]!.val) +
+    limbRadix ^ 3 * (n0 * constants.L[3]!.val + n1 * constants.L[2]!.val +
+      n2 * constants.L[1]!.val + n3 * constants.L[0]!.val) +
+    limbRadix ^ 4 * (n0 * constants.L[4]!.val + n1 * constants.L[3]!.val +
+      n2 * constants.L[2]!.val + n3 * constants.L[1]!.val + n4 * constants.L[0]!.val) +
+    limbRadix ^ 5 * (n1 * constants.L[4]!.val + n2 * constants.L[3]!.val +
+      n3 * constants.L[2]!.val + n4 * constants.L[1]!.val + n5 * constants.L[0]!.val) +
+    limbRadix ^ 6 * (n2 * constants.L[4]!.val + n3 * constants.L[3]!.val +
+      n4 * constants.L[2]!.val + n5 * constants.L[1]!.val + n6 * constants.L[0]!.val) +
+    limbRadix ^ 7 * (n3 * constants.L[4]!.val + n4 * constants.L[3]!.val +
+      n5 * constants.L[2]!.val + n6 * constants.L[1]!.val + n7 * constants.L[0]!.val) +
+    limbRadix ^ 8 * (n0 * constants.L[8]!.val + n4 * constants.L[4]!.val +
+      n5 * constants.L[3]!.val + n6 * constants.L[2]!.val + n7 * constants.L[1]!.val +
+      n8 * constants.L[0]!.val)
 
-/-- The nine `part1` rows telescope to the part of the Montgomery identity of weight below
-`B ^ 9`: the low nine coefficients plus the low half of `n * L` is exactly `c8 * B ^ 9`. -/
-private theorem adjust_identity {B l0 l1 l2 l3 l4 l8 : Nat}
-    {t0 t1 t2 t3 t4 t5 t6 t7 t8 : Nat} {n0 n1 n2 n3 n4 n5 n6 n7 n8 : Nat}
-    {c0 c1 c2 c3 c4 c5 c6 c7 c8 : Nat}
-    (h0 : t0 + n0 * l0 = c0 * B)
-    (h1 : c0 + t1 + n0 * l1 + n1 * l0 = c1 * B)
-    (h2 : c1 + t2 + n0 * l2 + n1 * l1 + n2 * l0 = c2 * B)
-    (h3 : c2 + t3 + n0 * l3 + n1 * l2 + n2 * l1 + n3 * l0 = c3 * B)
-    (h4 : c3 + t4 + n0 * l4 + n1 * l3 + n2 * l2 + n3 * l1 + n4 * l0 = c4 * B)
-    (h5 : c4 + t5 + n1 * l4 + n2 * l3 + n3 * l2 + n4 * l1 + n5 * l0 = c5 * B)
-    (h6 : c5 + t6 + n2 * l4 + n3 * l3 + n4 * l2 + n5 * l1 + n6 * l0 = c6 * B)
-    (h7 : c6 + t7 + n3 * l4 + n4 * l3 + n5 * l2 + n6 * l1 + n7 * l0 = c7 * B)
-    (h8 : c7 + t8 + n0 * l8 + n4 * l4 + n5 * l3 + n6 * l2 + n7 * l1 + n8 * l0 = c8 * B) :
-    t0 + B * t1 + B ^ 2 * t2 + B ^ 3 * t3 + B ^ 4 * t4 + B ^ 5 * t5 + B ^ 6 * t6 +
-        B ^ 7 * t7 + B ^ 8 * t8 +
-        (n0 * l0 +
-          B * (n0 * l1 + n1 * l0) +
-          B ^ 2 * (n0 * l2 + n1 * l1 + n2 * l0) +
-          B ^ 3 * (n0 * l3 + n1 * l2 + n2 * l1 + n3 * l0) +
-          B ^ 4 * (n0 * l4 + n1 * l3 + n2 * l2 + n3 * l1 + n4 * l0) +
-          B ^ 5 * (n1 * l4 + n2 * l3 + n3 * l2 + n4 * l1 + n5 * l0) +
-          B ^ 6 * (n2 * l4 + n3 * l3 + n4 * l2 + n5 * l1 + n6 * l0) +
-          B ^ 7 * (n3 * l4 + n4 * l3 + n5 * l2 + n6 * l1 + n7 * l0) +
-          B ^ 8 * (n0 * l8 + n4 * l4 + n5 * l3 + n6 * l2 + n7 * l1 + n8 * l0)) =
-      c8 * B ^ 9 := by
+/-- The part of `n * L` of weight at least `B^9`, divided by `B^9`: the coefficient of `B^i`
+collects the products `n_j * l_k` with `j + k = 9 + i`, in the order the `part2` rows
+accumulate them. -/
+private def extractPartial (n1 n2 n3 n4 n5 n6 n7 n8 : Nat) : Nat :=
+  n1 * constants.L[8]!.val + n5 * constants.L[4]!.val + n6 * constants.L[3]!.val +
+      n7 * constants.L[2]!.val + n8 * constants.L[1]!.val +
+    limbRadix * (n2 * constants.L[8]!.val + n6 * constants.L[4]!.val +
+      n7 * constants.L[3]!.val + n8 * constants.L[2]!.val) +
+    limbRadix ^ 2 * (n3 * constants.L[8]!.val + n7 * constants.L[4]!.val +
+      n8 * constants.L[3]!.val) +
+    limbRadix ^ 3 * (n4 * constants.L[8]!.val + n8 * constants.L[4]!.val) +
+    limbRadix ^ 4 * (n5 * constants.L[8]!.val) +
+    limbRadix ^ 5 * (n6 * constants.L[8]!.val) +
+    limbRadix ^ 6 * (n7 * constants.L[8]!.val) +
+    limbRadix ^ 7 * (n8 * constants.L[8]!.val)
+
+/-- The wide value splits at weight `B^9`. -/
+private theorem wideAsNat_split (limbs : Array U64 17#usize) :
+    wideAsNat limbs = lowWide limbs + limbRadix ^ 9 * highWide limbs := by
+  simp only [wideAsNat, Array.uScalarToNatRadix, lowWide, highWide, UScalar.ofNatCore_val_eq,
+    Finset.sum_range_succ, Finset.sum_range_zero, zero_add, limbRadix, pow_mul]
+  ring
+
+/-- The product of a nine-limb value with `L` splits at weight `B^9`. -/
+private theorem asNat_mul_order_split (a : Scalar29) :
+    asNat a * order =
+      adjustPartial a[0]!.val a[1]!.val a[2]!.val a[3]!.val a[4]!.val a[5]!.val a[6]!.val
+          a[7]!.val a[8]!.val +
+        limbRadix ^ 9 * extractPartial a[1]!.val a[2]!.val a[3]!.val a[4]!.val a[5]!.val
+          a[6]!.val a[7]!.val a[8]!.val := by
+  rw [← constants.L_spec]
+  simp only [asNat, Array.uScalarToNatRadix, adjustPartial, extractPartial,
+    UScalar.ofNatCore_val_eq, Finset.sum_range_succ, Finset.sum_range_zero, zero_add, limbRadix,
+    pow_mul, constants.L, Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
+    List.getElem!_cons_succ]
+  ring
+
+private theorem montgomeryRadix_eq : montgomeryRadix = limbRadix ^ 9 := by
+  simp only [montgomeryRadix, limbRadix, ← pow_mul]
+
+/-! ## The two halves
+
+Inside this section `step` evaluates every `constants.L` lookup it introduces to a literal, so
+that the overflow side conditions of the additions stay linear for `grind`. -/
+section Halves
+
+attribute [local step_post_simps] constants.L Array.getElem!_Nat_eq Array.make
+  List.getElem!_cons_zero List.getElem!_cons_succ
+
+/-- The nine `part1` rows telescope to the low half of the Montgomery identity. -/
+private theorem adjust_identity {limbs : Array U64 17#usize}
+    {n0 n1 n2 n3 n4 n5 n6 n7 n8 c0 c1 c2 c3 c4 c5 c6 c7 c8 : Nat}
+    (h0 : c0 * limbRadix = limbs[0]!.val + n0 * constants.L[0]!.val)
+    (h1 : c1 * limbRadix = c0 + limbs[1]!.val + n0 * constants.L[1]!.val +
+      n1 * constants.L[0]!.val)
+    (h2 : c2 * limbRadix = c1 + limbs[2]!.val + n0 * constants.L[2]!.val +
+      n1 * constants.L[1]!.val + n2 * constants.L[0]!.val)
+    (h3 : c3 * limbRadix = c2 + limbs[3]!.val + n0 * constants.L[3]!.val +
+      n1 * constants.L[2]!.val + n2 * constants.L[1]!.val + n3 * constants.L[0]!.val)
+    (h4 : c4 * limbRadix = c3 + limbs[4]!.val + n0 * constants.L[4]!.val +
+      n1 * constants.L[3]!.val + n2 * constants.L[2]!.val + n3 * constants.L[1]!.val +
+      n4 * constants.L[0]!.val)
+    (h5 : c5 * limbRadix = c4 + limbs[5]!.val + n1 * constants.L[4]!.val +
+      n2 * constants.L[3]!.val + n3 * constants.L[2]!.val + n4 * constants.L[1]!.val +
+      n5 * constants.L[0]!.val)
+    (h6 : c6 * limbRadix = c5 + limbs[6]!.val + n2 * constants.L[4]!.val +
+      n3 * constants.L[3]!.val + n4 * constants.L[2]!.val + n5 * constants.L[1]!.val +
+      n6 * constants.L[0]!.val)
+    (h7 : c7 * limbRadix = c6 + limbs[7]!.val + n3 * constants.L[4]!.val +
+      n4 * constants.L[3]!.val + n5 * constants.L[2]!.val + n6 * constants.L[1]!.val +
+      n7 * constants.L[0]!.val)
+    (h8 : c8 * limbRadix = c7 + limbs[8]!.val + n0 * constants.L[8]!.val +
+      n4 * constants.L[4]!.val + n5 * constants.L[3]!.val + n6 * constants.L[2]!.val +
+      n7 * constants.L[1]!.val + n8 * constants.L[0]!.val) :
+    lowWide limbs + adjustPartial n0 n1 n2 n3 n4 n5 n6 n7 n8 = c8 * limbRadix ^ 9 := by
+  simp only [lowWide, adjustPartial]
   zify at h0 h1 h2 h3 h4 h5 h6 h7 h8 ⊢
-  linear_combination h0 + h1 * (B : Int) + h2 * (B : Int) ^ 2 + h3 * (B : Int) ^ 3 +
-    h4 * (B : Int) ^ 4 + h5 * (B : Int) ^ 5 + h6 * (B : Int) ^ 6 + h7 * (B : Int) ^ 7 +
-    h8 * (B : Int) ^ 8
+  linear_combination -(h0 + h1 * (limbRadix : Int) + h2 * (limbRadix : Int) ^ 2 +
+    h3 * (limbRadix : Int) ^ 3 + h4 * (limbRadix : Int) ^ 4 + h5 * (limbRadix : Int) ^ 5 +
+    h6 * (limbRadix : Int) ^ 6 + h7 * (limbRadix : Int) ^ 7 + h8 * (limbRadix : Int) ^ 8)
 
+set_option maxHeartbeats 1000000 in
+-- `step*` symbolically executes eighty-five bindings, discharging an overflow side condition
+-- for each addition, which does not fit in the default budget.
 /-- **Spec theorem for the adjust phase of
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce`**
 
 Returns the cached `constants.L` lookups, the Montgomery quotient digits `n1, …, n8` and the
-carry out of the ninth row. -/
+carry out of the ninth row; the digit `n0` is existentially quantified since the phase does not
+return it. -/
+@[scoped step]
 theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
-    (h_bounds : ∀ i < 17, limbs[i]!.val < 2 ^ 63) :
+    (h_bounds : ∀ i < 9, limbs[i]!.val < 2 ^ 63) :
     montgomery_reduce_adjust limbs ⦃ (i3 n1 i8 n2 i15 n3 i24 n4 n5 n6 n7 i65 : U32)
         (carry8 : U64) (n8 : U32) =>
       i3 = constants.L[1]! ∧ i8 = constants.L[2]! ∧ i15 = constants.L[3]! ∧
@@ -259,185 +312,110 @@ theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
       n5.val < limbRadix ∧ n6.val < limbRadix ∧ n7.val < limbRadix ∧ n8.val < limbRadix ∧
       carry8.val < 2 ^ 35 ∧
       ∃ n0 : U32, n0.val < limbRadix ∧
-        limbs[0]!.val + limbRadix * limbs[1]!.val + limbRadix ^ 2 * limbs[2]!.val +
-            limbRadix ^ 3 * limbs[3]!.val + limbRadix ^ 4 * limbs[4]!.val +
-            limbRadix ^ 5 * limbs[5]!.val + limbRadix ^ 6 * limbs[6]!.val +
-            limbRadix ^ 7 * limbs[7]!.val + limbRadix ^ 8 * limbs[8]!.val +
-            (n0.val * constants.L[0]!.val +
-              limbRadix * (n0.val * constants.L[1]!.val + n1.val * constants.L[0]!.val) +
-              limbRadix ^ 2 * (n0.val * constants.L[2]!.val + n1.val * constants.L[1]!.val +
-                n2.val * constants.L[0]!.val) +
-              limbRadix ^ 3 * (n0.val * constants.L[3]!.val + n1.val * constants.L[2]!.val +
-                n2.val * constants.L[1]!.val + n3.val * constants.L[0]!.val) +
-              limbRadix ^ 4 * (n0.val * constants.L[4]!.val + n1.val * constants.L[3]!.val +
-                n2.val * constants.L[2]!.val + n3.val * constants.L[1]!.val +
-                n4.val * constants.L[0]!.val) +
-              limbRadix ^ 5 * (n1.val * constants.L[4]!.val + n2.val * constants.L[3]!.val +
-                n3.val * constants.L[2]!.val + n4.val * constants.L[1]!.val +
-                n5.val * constants.L[0]!.val) +
-              limbRadix ^ 6 * (n2.val * constants.L[4]!.val + n3.val * constants.L[3]!.val +
-                n4.val * constants.L[2]!.val + n5.val * constants.L[1]!.val +
-                n6.val * constants.L[0]!.val) +
-              limbRadix ^ 7 * (n3.val * constants.L[4]!.val + n4.val * constants.L[3]!.val +
-                n5.val * constants.L[2]!.val + n6.val * constants.L[1]!.val +
-                n7.val * constants.L[0]!.val) +
-              limbRadix ^ 8 * (n0.val * constants.L[8]!.val + n4.val * constants.L[4]!.val +
-                n5.val * constants.L[3]!.val + n6.val * constants.L[2]!.val +
-                n7.val * constants.L[1]!.val + n8.val * constants.L[0]!.val)) =
-          carry8.val * limbRadix ^ 9 ⦄ := by
-  simp only [Array.getElem!_Nat_eq] at h_bounds
-  unfold montgomery_reduce_adjust Insts.CoreOpsIndexIndexUsizeU32.index
-  simp only [index_eq, UScalar.ofNatCore_val_eq, Nat.reduceLT, constants.L,
-    Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
-    List.getElem!_cons_succ, bind_tc_ok]
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c0, n0, hn0, hc0, row0⟩ by grind only [limbRadix]
-  mont_chain 1 row0
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c1, n1, hn1, hc1, row1⟩ by grind only [limbRadix]
-  simp only [*, -row1] at row1
-  mont_chain 2 row0 row1
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c2, n2, hn2, hc2, row2⟩ by grind only [limbRadix]
-  simp only [*, -row2] at row2
-  mont_chain 3 row0 row1 row2
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c3, n3, hn3, hc3, row3⟩ by grind only [limbRadix]
-  simp only [*, -row3] at row3
-  mont_chain 4 row0 row1 row2 row3
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c4, n4, hn4, hc4, row4⟩ by grind only [limbRadix]
-  simp only [*, -row4] at row4
-  mont_chain 4 row0 row1 row2 row3 row4
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c5, n5, hn5, hc5, row5⟩ by grind only [limbRadix]
-  simp only [*, -row5] at row5
-  mont_chain 4 row0 row1 row2 row3 row4 row5
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c6, n6, hn6, hc6, row6⟩ by grind only [limbRadix]
-  simp only [*, -row6] at row6
-  mont_chain 4 row0 row1 row2 row3 row4 row5 row6
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c7, n7, hn7, hc7, row7⟩ by grind only [limbRadix]
-  simp only [*, -row7] at row7
-  mont_chain 5 row0 row1 row2 row3 row4 row5 row6 row7
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part1_spec
-    as ⟨c8, n8, hn8, hc8, row8⟩ by grind only [limbRadix]
-  simp only [*, -row8] at row8
-  refine ⟨hn1, hn2, hn3, hn4, hn5, hn6, hn7, hn8, hc8, n0, hn0, ?_⟩
-  simp only [constants.L, Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
-    UScalar.ofNatCore_val_eq] at row0 row1 row2 row3 row4 row5 row6 row7 row8
-  exact adjust_identity row0.symm row1.symm row2.symm row3.symm row4.symm row5.symm row6.symm
-    row7.symm row8.symm
+        lowWide limbs + adjustPartial n0.val n1.val n2.val n3.val n4.val n5.val n6.val n7.val
+          n8.val = carry8.val * limbRadix ^ 9 ⦄ := by
+  -- `Array.index_usize_spec` describes the lookups with `limbs.val[i]`, so restate the bound in
+  -- that form for `grind`.
+  have h_bounds' : ∀ (i : Nat) (hi : i < 9), (limbs.val[i]'(by scalar_tac)).val < 2 ^ 63 := by
+    intro i hi
+    rw [← getElem!_pos _ _ (by scalar_tac), ← Array.getElem!_Nat_eq]
+    exact h_bounds i hi
+  unfold montgomery_reduce_adjust
+  step* -grind -threadGrindState by
+    grind only [U64.max_eq, limbRadix, UScalar.ofNatCore_val_eq, Array.length_eq]
+  -- The five cached lookups are literals on both sides now.
+  simp only [i3_post, i8_post, i15_post, i24_post, i65_post, Array.getElem!_Nat_eq, constants.L,
+    Array.make, List.getElem!_cons_zero, List.getElem!_cons_succ, true_and]
+  refine ⟨carry1_post1, carry2_post1, carry3_post1, carry4_post1, carry5_post1, carry6_post1,
+    carry7_post1, carry8_post1, carry8_post2, n0, carry_post1, ?_⟩
+  -- Express the nine rows in the input coefficients and quotient digits.
+  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry_post3 carry1_post3 carry2_post3
+  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry3_post3 carry4_post3
+  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry5_post3 carry6_post3
+  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry7_post3 carry8_post3
+  refine adjust_identity (c0 := carry.val) (c1 := carry1.val) (c2 := carry2.val)
+    (c3 := carry3.val) (c4 := carry4.val) (c5 := carry5.val) (c6 := carry6.val)
+    (c7 := carry7.val) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ <;>
+    simp only [Array.getElem!_Nat_eq, constants.L, Array.make, List.getElem!_cons_zero,
+      List.getElem!_cons_succ, UScalar.ofNatCore_val_eq]
+  exacts [carry_post3, carry1_post3, carry2_post3, carry3_post3, carry4_post3, carry5_post3,
+    carry6_post3, carry7_post3, carry8_post3]
 
-/-! ## The extract phase -/
-
-/-- The eight `part2` rows telescope to the part of the Montgomery identity of weight at
-least `B ^ 9`, divided by `B ^ 9`: the incoming carry plus the high eight coefficients plus
-the high half of `n * L` is exactly the result. -/
-private theorem extract_identity {B l1 l2 l3 l4 l8 : Nat}
-    {t9 t10 t11 t12 t13 t14 t15 t16 : Nat} {n1 n2 n3 n4 n5 n6 n7 n8 : Nat}
-    {c8 c9 c10 c11 c12 c13 c14 c15 c16 : Nat} {r0 r1 r2 r3 r4 r5 r6 r7 : Nat}
-    (h9 : c8 + t9 + n1 * l8 + n5 * l4 + n6 * l3 + n7 * l2 + n8 * l1 = c9 * B + r0)
-    (h10 : c9 + t10 + n2 * l8 + n6 * l4 + n7 * l3 + n8 * l2 = c10 * B + r1)
-    (h11 : c10 + t11 + n3 * l8 + n7 * l4 + n8 * l3 = c11 * B + r2)
-    (h12 : c11 + t12 + n4 * l8 + n8 * l4 = c12 * B + r3)
-    (h13 : c12 + t13 + n5 * l8 = c13 * B + r4)
-    (h14 : c13 + t14 + n6 * l8 = c14 * B + r5)
-    (h15 : c14 + t15 + n7 * l8 = c15 * B + r6)
-    (h16 : c15 + t16 + n8 * l8 = c16 * B + r7) :
-    c8 + t9 + B * t10 + B ^ 2 * t11 + B ^ 3 * t12 + B ^ 4 * t13 + B ^ 5 * t14 +
-        B ^ 6 * t15 + B ^ 7 * t16 +
-        (n1 * l8 + n5 * l4 + n6 * l3 + n7 * l2 + n8 * l1 +
-          B * (n2 * l8 + n6 * l4 + n7 * l3 + n8 * l2) +
-          B ^ 2 * (n3 * l8 + n7 * l4 + n8 * l3) +
-          B ^ 3 * (n4 * l8 + n8 * l4) +
-          B ^ 4 * (n5 * l8) + B ^ 5 * (n6 * l8) + B ^ 6 * (n7 * l8) + B ^ 7 * (n8 * l8)) =
-      r0 + B * r1 + B ^ 2 * r2 + B ^ 3 * r3 + B ^ 4 * r4 + B ^ 5 * r5 + B ^ 6 * r6 +
-        B ^ 7 * r7 + B ^ 8 * c16 := by
+/-- The eight `part2` rows telescope to the high half of the Montgomery identity. -/
+private theorem extract_identity {limbs : Array U64 17#usize}
+    {n1 n2 n3 n4 n5 n6 n7 n8 c8 c9 c10 c11 c12 c13 c14 c15 c16 r0 r1 r2 r3 r4 r5 r6 r7 : Nat}
+    (h9 : c9 * limbRadix + r0 = c8 + limbs[9]!.val + n1 * constants.L[8]!.val +
+      n5 * constants.L[4]!.val + n6 * constants.L[3]!.val + n7 * constants.L[2]!.val +
+      n8 * constants.L[1]!.val)
+    (h10 : c10 * limbRadix + r1 = c9 + limbs[10]!.val + n2 * constants.L[8]!.val +
+      n6 * constants.L[4]!.val + n7 * constants.L[3]!.val + n8 * constants.L[2]!.val)
+    (h11 : c11 * limbRadix + r2 = c10 + limbs[11]!.val + n3 * constants.L[8]!.val +
+      n7 * constants.L[4]!.val + n8 * constants.L[3]!.val)
+    (h12 : c12 * limbRadix + r3 = c11 + limbs[12]!.val + n4 * constants.L[8]!.val +
+      n8 * constants.L[4]!.val)
+    (h13 : c13 * limbRadix + r4 = c12 + limbs[13]!.val + n5 * constants.L[8]!.val)
+    (h14 : c14 * limbRadix + r5 = c13 + limbs[14]!.val + n6 * constants.L[8]!.val)
+    (h15 : c15 * limbRadix + r6 = c14 + limbs[15]!.val + n7 * constants.L[8]!.val)
+    (h16 : c16 * limbRadix + r7 = c15 + limbs[16]!.val + n8 * constants.L[8]!.val) :
+    c8 + highWide limbs + extractPartial n1 n2 n3 n4 n5 n6 n7 n8 =
+      r0 + limbRadix * r1 + limbRadix ^ 2 * r2 + limbRadix ^ 3 * r3 + limbRadix ^ 4 * r4 +
+        limbRadix ^ 5 * r5 + limbRadix ^ 6 * r6 + limbRadix ^ 7 * r7 + limbRadix ^ 8 * c16 := by
+  simp only [highWide, extractPartial]
   zify at h9 h10 h11 h12 h13 h14 h15 h16 ⊢
-  linear_combination h9 + h10 * (B : Int) + h11 * (B : Int) ^ 2 + h12 * (B : Int) ^ 3 +
-    h13 * (B : Int) ^ 4 + h14 * (B : Int) ^ 5 + h15 * (B : Int) ^ 6 + h16 * (B : Int) ^ 7
+  linear_combination -(h9 + h10 * (limbRadix : Int) + h11 * (limbRadix : Int) ^ 2 +
+    h12 * (limbRadix : Int) ^ 3 + h13 * (limbRadix : Int) ^ 4 + h14 * (limbRadix : Int) ^ 5 +
+    h15 * (limbRadix : Int) ^ 6 + h16 * (limbRadix : Int) ^ 7)
 
+set_option maxHeartbeats 1000000 in
+-- `step*` symbolically executes sixty bindings, discharging an overflow side condition for
+-- each addition, which does not fit in the default budget.
 /-- **Spec theorem for the extract phase of
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce`**
 
-Returns the eight low digits of the exact Montgomery quotient together with the top carry. -/
+Applied to the cached `constants.L` lookups, the phase returns the eight low digits of the
+exact Montgomery quotient together with the top carry. -/
+@[scoped step]
 theorem montgomery_reduce_extract_spec (limbs : Array U64 17#usize)
-    (i3 n1 i8 n2 i15 n3 i24 n4 n5 n6 n7 i65 : U32) (carry8 : U64) (n8 : U32)
-    (h_bounds : ∀ i < 17, limbs[i]!.val < 2 ^ 63)
-    (h_l1 : i3 = constants.L[1]!) (h_l2 : i8 = constants.L[2]!)
-    (h_l3 : i15 = constants.L[3]!) (h_l4 : i24 = constants.L[4]!)
-    (h_l8 : i65 = constants.L[8]!)
+    (n1 n2 n3 n4 n5 n6 n7 : U32) (carry8 : U64) (n8 : U32)
+    (h_bounds : ∀ i, 9 ≤ i → i < 17 → limbs[i]!.val < 2 ^ 63)
     (hn1 : n1.val < limbRadix) (hn2 : n2.val < limbRadix) (hn3 : n3.val < limbRadix)
     (hn4 : n4.val < limbRadix) (hn5 : n5.val < limbRadix) (hn6 : n6.val < limbRadix)
     (hn7 : n7.val < limbRadix) (hn8 : n8.val < limbRadix)
     (h_carry8 : carry8.val < 2 ^ 35) :
-    montgomery_reduce_extract limbs i3 n1 i8 n2 i15 n3 i24 n4 n5 n6 n7 i65 carry8 n8
+    montgomery_reduce_extract limbs constants.L[1]! n1 constants.L[2]! n2 constants.L[3]! n3
+      constants.L[4]! n4 n5 n6 n7 constants.L[8]! carry8 n8
       ⦃ (r0 r1 r2 r3 r4 r5 r6 : U32) (carry16 : U64) (r7 : U32) =>
       r0.val < limbRadix ∧ r1.val < limbRadix ∧ r2.val < limbRadix ∧ r3.val < limbRadix ∧
       r4.val < limbRadix ∧ r5.val < limbRadix ∧ r6.val < limbRadix ∧ r7.val < limbRadix ∧
-      carry8.val + limbs[9]!.val + limbRadix * limbs[10]!.val +
-          limbRadix ^ 2 * limbs[11]!.val + limbRadix ^ 3 * limbs[12]!.val +
-          limbRadix ^ 4 * limbs[13]!.val + limbRadix ^ 5 * limbs[14]!.val +
-          limbRadix ^ 6 * limbs[15]!.val + limbRadix ^ 7 * limbs[16]!.val +
-          (n1.val * constants.L[8]!.val + n5.val * constants.L[4]!.val +
-            n6.val * constants.L[3]!.val + n7.val * constants.L[2]!.val +
-            n8.val * constants.L[1]!.val +
-            limbRadix * (n2.val * constants.L[8]!.val + n6.val * constants.L[4]!.val +
-              n7.val * constants.L[3]!.val + n8.val * constants.L[2]!.val) +
-            limbRadix ^ 2 * (n3.val * constants.L[8]!.val + n7.val * constants.L[4]!.val +
-              n8.val * constants.L[3]!.val) +
-            limbRadix ^ 3 * (n4.val * constants.L[8]!.val + n8.val * constants.L[4]!.val) +
-            limbRadix ^ 4 * (n5.val * constants.L[8]!.val) +
-            limbRadix ^ 5 * (n6.val * constants.L[8]!.val) +
-            limbRadix ^ 6 * (n7.val * constants.L[8]!.val) +
-            limbRadix ^ 7 * (n8.val * constants.L[8]!.val)) =
+      carry8.val + highWide limbs + extractPartial n1.val n2.val n3.val n4.val n5.val n6.val
+          n7.val n8.val =
         r0.val + limbRadix * r1.val + limbRadix ^ 2 * r2.val + limbRadix ^ 3 * r3.val +
           limbRadix ^ 4 * r4.val + limbRadix ^ 5 * r5.val + limbRadix ^ 6 * r6.val +
           limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val ⦄ := by
-  simp only [Array.getElem!_Nat_eq] at h_bounds
-  -- Put the digit bounds in the numeric form the overflow side conditions below need.
-  simp only [limbRadix] at hn1 hn2 hn3 hn4 hn5 hn6 hn7 hn8
+  -- `Array.index_usize_spec` describes the lookups with `limbs.val[i]`, so restate the bound in
+  -- that form for `grind`.
+  have h_bounds' : ∀ (i : Nat) (hi : 9 ≤ i ∧ i < 17),
+      (limbs.val[i]'(by scalar_tac)).val < 2 ^ 63 := by
+    intro i hi
+    rw [← getElem!_pos _ _ (by scalar_tac), ← Array.getElem!_Nat_eq]
+    exact h_bounds i hi.1 hi.2
   unfold montgomery_reduce_extract
-  simp only [h_l1, h_l2, h_l3, h_l4, h_l8, index_eq, UScalar.ofNatCore_val_eq, Nat.reduceLT,
-    constants.L, Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
-    List.getElem!_cons_succ, bind_tc_ok]
-  mont_chain 5
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c9, r0, hr0, hc9, row9⟩
-  simp only [*, -row9] at row9
-  mont_chain 4 row9
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c10, r1, hr1, hc10, row10⟩
-  simp only [*, -row10] at row10
-  mont_chain 3 row9 row10
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c11, r2, hr2, hc11, row11⟩
-  simp only [*, -row11] at row11
-  mont_chain 2 row9 row10 row11
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c12, r3, hr3, hc12, row12⟩
-  simp only [*, -row12] at row12
-  mont_chain 1 row9 row10 row11 row12
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c13, r4, hr4, hc13, row13⟩
-  simp only [*, -row13] at row13
-  mont_chain 1 row9 row10 row11 row12 row13
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c14, r5, hr5, hc14, row14⟩
-  simp only [*, -row14] at row14
-  mont_chain 1 row9 row10 row11 row12 row13 row14
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c15, r6, hr6, hc15, row15⟩
-  simp only [*, -row15] at row15
-  mont_chain 1 row9 row10 row11 row12 row13 row14 row15
-  step -threadGrindState -grind -assumTac with montgomery_reduce.part2_spec
-    as ⟨c16, r7, hr7, hc16, row16⟩
-  simp only [*, -row16] at row16
-  refine ⟨hr0, hr1, hr2, hr3, hr4, hr5, hr6, hr7, ?_⟩
-  exact extract_identity row9.symm row10.symm row11.symm row12.symm row13.symm row14.symm
-    row15.symm row16.symm
+  step* -grind -threadGrindState by
+    grind only [U64.max_eq, limbRadix, UScalar.ofNatCore_val_eq, Array.length_eq]
+  refine ⟨carry9_post1, carry10_post1, carry11_post1, carry12_post1, carry13_post1,
+    carry14_post1, carry15_post1, carry16_post1, ?_⟩
+  -- Express the eight rows in the input coefficients and quotient digits.
+  simp only [*, ← getElem!_pos] at carry9_post3 carry10_post3 carry11_post3 carry12_post3
+  simp only [*, ← getElem!_pos] at carry13_post3 carry14_post3 carry15_post3 carry16_post3
+  refine extract_identity (c9 := carry9.val) (c10 := carry10.val) (c11 := carry11.val)
+    (c12 := carry12.val) (c13 := carry13.val) (c14 := carry14.val) (c15 := carry15.val)
+    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ <;>
+    simp only [Array.getElem!_Nat_eq, constants.L, Array.make, List.getElem!_cons_zero,
+      List.getElem!_cons_succ, UScalar.ofNatCore_val_eq]
+  exacts [carry9_post3, carry10_post3, carry11_post3, carry12_post3, carry13_post3,
+    carry14_post3, carry15_post3, carry16_post3]
+
+end Halves
 
 /-! ## Gluing the two halves -/
 
@@ -454,16 +432,18 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       IsNormalized result ∧
       asNat result < order ⦄ := by
   rw [montgomery_reduce_eq]
-  step -threadGrindState -grind with montgomery_reduce_adjust_spec
-    as ⟨i3, n1, i8, n2, i15, n3, i24, n4, n5, n6, n7, i65, carry8, n8,
-        h_l1, h_l2, h_l3, h_l4, h_l8, hn1, hn2, hn3, hn4, hn5, hn6, hn7, hn8, hc8,
-        n0, hn0, h_adjust⟩
-  step -threadGrindState -grind with montgomery_reduce_extract_spec
-    as ⟨r0, r1, r2, r3, r4, r5, r6, carry16, r7,
-        hr0, hr1, hr2, hr3, hr4, hr5, hr6, hr7, h_extract⟩
+  step -grind -threadGrindState as ⟨i3, n1, i8, n2, i15, n3, i24, n4, n5, n6, n7, i65, carry8, n8,
+      h_i3, h_i8, h_i15, h_i24, h_i65, hn1, hn2, hn3, hn4, hn5, hn6, hn7, hn8, hc8, n0, hn0,
+      h_adjust⟩ by
+    exact fun i hi => h_bounds i (by omega)
+  -- The extract phase is specified for the actual `constants.L` limbs.
+  simp only [h_i3, h_i8, h_i15, h_i24, h_i65]
+  step -grind -threadGrindState as ⟨r0, r1, r2, r3, r4, r5, r6, carry16, r7, hr0, hr1, hr2, hr3,
+      hr4, hr5, hr6, hr7, h_extract⟩ by
+    exact fun i _ hi => h_bounds i hi
   -- Assemble the exact quotient before narrowing the top carry.
   let adjustment : Scalar29 := Array.make 9#usize [n0, n1, n2, n3, n4, n5, n6, n7, n8]
-  let quotient : Nat := r0.val + limbRadix ^ 1 * r1.val + limbRadix ^ 2 * r2.val +
+  let quotient : Nat := r0.val + limbRadix * r1.val + limbRadix ^ 2 * r2.val +
     limbRadix ^ 3 * r3.val + limbRadix ^ 4 * r4.val + limbRadix ^ 5 * r5.val +
     limbRadix ^ 6 * r6.val + limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val
   have h_adjustment : asNat adjustment < montgomeryRadix := by
@@ -475,35 +455,11 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
   have h_identity : wideAsNat limbs + asNat adjustment * order = quotient * montgomeryRadix := by
     -- Weighting the extract identity by `limbRadix ^ 9` and adding the adjust identity
     -- recovers the full Montgomery identity.
-    have h_poly :
-        limbs[0]!.val + limbRadix * limbs[1]!.val + limbRadix ^ 2 * limbs[2]!.val +
-            limbRadix ^ 3 * limbs[3]!.val + limbRadix ^ 4 * limbs[4]!.val +
-            limbRadix ^ 5 * limbs[5]!.val + limbRadix ^ 6 * limbs[6]!.val +
-            limbRadix ^ 7 * limbs[7]!.val + limbRadix ^ 8 * limbs[8]!.val +
-            limbRadix ^ 9 * limbs[9]!.val + limbRadix ^ 10 * limbs[10]!.val +
-            limbRadix ^ 11 * limbs[11]!.val + limbRadix ^ 12 * limbs[12]!.val +
-            limbRadix ^ 13 * limbs[13]!.val + limbRadix ^ 14 * limbs[14]!.val +
-            limbRadix ^ 15 * limbs[15]!.val + limbRadix ^ 16 * limbs[16]!.val +
-            (n0.val + limbRadix * n1.val + limbRadix ^ 2 * n2.val + limbRadix ^ 3 * n3.val +
-                limbRadix ^ 4 * n4.val + limbRadix ^ 5 * n5.val + limbRadix ^ 6 * n6.val +
-                limbRadix ^ 7 * n7.val + limbRadix ^ 8 * n8.val) *
-              (constants.L[0]!.val + limbRadix * constants.L[1]!.val +
-                limbRadix ^ 2 * constants.L[2]!.val + limbRadix ^ 3 * constants.L[3]!.val +
-                limbRadix ^ 4 * constants.L[4]!.val + limbRadix ^ 8 * constants.L[8]!.val) =
-          (r0.val + limbRadix * r1.val + limbRadix ^ 2 * r2.val + limbRadix ^ 3 * r3.val +
-            limbRadix ^ 4 * r4.val + limbRadix ^ 5 * r5.val + limbRadix ^ 6 * r6.val +
-            limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val) * limbRadix ^ 9 := by
-      zify at h_adjust h_extract ⊢
-      linear_combination h_adjust + (limbRadix : Int) ^ 9 * h_extract
-    have h_radix : montgomeryRadix = (2 ^ 29) ^ 9 := by
-      rw [← pow_mul]
-      exact congrArg (fun n => (2 : Nat) ^ n) (by decide : 261 = 29 * 9)
-    rw [← constants.L_spec, h_radix]
-    simpa only [wideAsNat, asNat, adjustment, quotient, Array.uScalarToNatRadix,
-      UScalar.ofNatCore_val_eq, pow_mul, Finset.sum_range_succ,
-      Finset.sum_range_zero, zero_add, constants.L, Array.getElem!_Nat_eq,
-      Array.make, List.getElem!_cons_zero, List.getElem!_cons_succ,
-      limbRadix, pow_zero, pow_one, one_mul, mul_one, mul_zero, add_zero] using h_poly
+    rw [wideAsNat_split, asNat_mul_order_split, montgomeryRadix_eq]
+    simp only [adjustment, quotient, Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
+      List.getElem!_cons_succ]
+    zify at h_adjust h_extract ⊢
+    linear_combination h_adjust + (limbRadix : Int) ^ 9 * h_extract
   have h_radix_pos : 0 < montgomeryRadix := pow_pos (by decide : 0 < (2 : Nat)) 261
   have h_quotient : quotient < 2 * order := by
     apply (Nat.mul_lt_mul_right h_radix_pos).mp
@@ -525,10 +481,9 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
     have h_weight : 2 ^ 232 * carry16.val ≤ quotient := by
       simpa only [limbRadix, ← pow_mul, show 29 * 8 = 232 from rfl] using h_top_weight
     exact lt_of_le_of_lt h_weight h_small
-  refine spec_bind (UScalar.cast_inBounds_spec .U32 carry16 ?_) ?_
-  · rw [UScalar.max_UScalarTy_U32_eq, U32.max_eq]
+  step -grind -threadGrindState with UScalar.cast_inBounds_spec as ⟨r8, h_r8⟩ by
+    rw [UScalar.max_UScalarTy_U32_eq, U32.max_eq]
     exact h_top.le.trans (by decide)
-  intro r8 h_r8
   let pre : Scalar29 := Array.make 9#usize [r0, r1, r2, r3, r4, r5, r6, r7, r8]
   have h_pre : asNat pre = quotient := by
     simp only [pre, asNat, Array.uScalarToNatRadix, UScalar.ofNatCore_val_eq,
@@ -543,18 +498,21 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       simp only [pre, Array.getElem!_Nat_eq, Array.make,
         List.getElem!_cons_zero, List.getElem!_cons_succ]
     all_goals first | assumption | (rw [h_r8]; exact h_top.trans (by decide))
-  have h_sub_spec := sub_spec pre constants.L h_normalized constants.L_limbs_lt
-    (by rw [constants.L_spec]; omega)
-    (by rw [constants.L_spec, h_pre]; omega)
-  refine spec_mono h_sub_spec ?_
-  intro result ⟨h_result, h_sub, h_canonical⟩
+  have h_L : IsNormalized constants.L := constants.L_limbs_lt
+  have h_lower : asNat constants.L ≤ asNat pre + order := by
+    rw [constants.L_spec]
+    omega
+  have h_upper : asNat pre < asNat constants.L + order := by
+    rw [constants.L_spec, h_pre]
+    omega
+  step* -grind -threadGrindState
   have h_residue : asNat result % order = quotient % order := by
-    rw [constants.L_spec, h_pre] at h_sub
-    simpa only [Nat.add_mod, Nat.mod_self, Nat.add_zero, Nat.mod_mod] using h_sub
+    rw [constants.L_spec, h_pre] at result_post2
+    simpa only [Nat.add_mod, Nat.mod_self, Nat.add_zero, Nat.mod_mod] using result_post2
   have h_scaled : (quotient * montgomeryRadix) % order = wideAsNat limbs % order := by
     have h := congrArg (fun n : Nat => n % order) h_identity
     simpa only [Nat.add_mul_mod_self_right] using h.symm
-  refine ⟨?_, h_result, h_canonical⟩
+  refine ⟨?_, result_post1, result_post3⟩
   calc
     (asNat result * montgomeryRadix) % order =
         ((asNat result % order) * (montgomeryRadix % order)) % order := Nat.mul_mod _ _ _

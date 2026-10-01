@@ -36,3 +36,15 @@ theorem index_spec (self : Scalar29) (_index : Usize)
   grind
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29.Insts.CoreOpsIndexIndexUsizeU32
+
+namespace Curve25519Dalek.backend.serial.u32.scalar.Scalar29
+
+/-- Equational form of `Insts.CoreOpsIndexIndexUsizeU32.index_spec`: indexing below nine is a
+pure lookup.  Useful as a rewrite rule when a function body performs fixed lookups. -/
+theorem index_eq (self : Scalar29) (_index : Usize) (h_bound : _index.val < 9) :
+    Insts.CoreOpsIndexIndexUsizeU32.index self _index = ok self.val[_index.val]! := by
+  obtain ⟨result, h_eq, h_result⟩ :=
+    spec_imp_exists (Insts.CoreOpsIndexIndexUsizeU32.index_spec self _index h_bound)
+  exact h_result ▸ h_eq
+
+end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
