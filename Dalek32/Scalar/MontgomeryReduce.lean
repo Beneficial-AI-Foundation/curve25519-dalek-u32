@@ -11,7 +11,6 @@ import Dalek32.Scalar.Index
 import Dalek32.Scalar.M
 import Dalek32.Scalar.Sub
 import Mathlib.Tactic.IntervalCases
-import Mathlib.Tactic.Ring
 
 /-!
 # Spec theorem for `montgomery_reduce`
@@ -27,9 +26,7 @@ namespace Curve25519Dalek.backend.serial.u32.scalar.Scalar29
 private theorem index_eq {α : Type} [Inhabited α] {size : Usize}
     (a : Array α size) (i : Usize) (hi : i.val < size.val) :
     Array.index_usize a i = ok a[i.val]! := by
-  obtain ⟨result, h_eq, h_result⟩ := spec_imp_exists
-    (Array.index_usize_spec a i (by simpa only [Array.length_eq] using hi))
-  grind [Array.getElem!_Nat_eq]
+  grind [Array.index_usize, Array.getElem!_Nat_eq]
 
 namespace montgomery_reduce
 
@@ -66,21 +63,11 @@ theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
     decide
   have h_factor : (constants.L[0]!.val * constants.LFACTOR.val + 1) % limbRadix = 0 := by
     have h := constants.LFACTOR_spec.1
-    rw [Nat.add_mod, Nat.mul_mod, h_low_order] at h
-    rw [Nat.add_mod, Nat.mul_mod]
-    exact h
+    rwa [Nat.add_mod, Nat.mul_mod, h_low_order, ← Nat.mul_mod, ← Nat.add_mod] at h
   have h_cancel : (sum.val + p.val * constants.L[0]!.val) % limbRadix = 0 := by
-    rw [h_p_value]
-    calc
-      (sum.val + (sum.val * constants.LFACTOR.val % limbRadix) *
-          constants.L[0]!.val) % limbRadix =
-          (sum.val * (constants.L[0]!.val * constants.LFACTOR.val + 1)) % limbRadix := by
-        rw [Nat.add_mod, Nat.mod_mul_mod, ← Nat.add_mod]
-        congr 1
-        ring
-      _ = 0 := by
-        rw [Nat.mul_mod, h_factor]
-        simp only [Nat.mul_zero, Nat.zero_mod]
+    rw [h_p_value, Nat.add_mod, Nat.mod_mul_mod, ← Nat.add_mod,
+      Nat.add_comm sum.val, Nat.mul_assoc, Nat.mul_comm constants.LFACTOR.val,
+      ← Nat.mul_add_one, Nat.mul_mod, h_factor, Nat.mul_zero, Nat.zero_mod]
   step with Insts.CoreOpsIndexIndexUsizeU32.index_spec as ⟨l0, h_l0⟩
   have h_l0_bound : l0.val < limbRadix := by
     simpa only [h_l0, Array.getElem!_Nat_eq] using constants.L_limbs_lt 0 (by decide)
@@ -92,18 +79,11 @@ theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
     simp only [limbRadix, U64.max_eq] at h_product_bound ⊢
     omega
   step as ⟨carry, h_carry⟩
-  have h_carry_value : carry.val = joined.val / limbRadix := by
-    simpa only [Nat.shiftRight_eq_div_pow, limbRadix] using h_carry
-  refine ⟨h_p_bound, ?_, ?_⟩
-  · have h_joined_bound : joined.val < 2 ^ 64 := joined.hBounds
-    simp only [limbRadix] at h_carry_value
-    omega
-  · have h_div := Nat.mod_add_div joined.val limbRadix
-    have h_joined_value : joined.val = sum.val + p.val * constants.L[0]!.val := by
-      simp only [h_joined, h_product, h_l0, Array.getElem!_Nat_eq]
-    rw [h_joined_value, h_cancel] at h_div
-    rw [h_carry_value, h_joined_value]
-    simpa only [Nat.zero_add, Nat.mul_comm] using h_div
+  have h_bound : joined.val < 2 ^ 64 := joined.hBounds
+  simp only [h_joined, h_product, h_l0] at h_bound h_carry
+  simp only [Nat.shiftRight_eq_div_pow] at h_carry
+  simp only [limbRadix, Array.getElem!_Nat_eq] at h_p_bound h_cancel ⊢
+  omega
 
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce::part2`**
@@ -128,16 +108,10 @@ theorem part2_spec (sum : U64) :
     simp only [h_w, UScalar.val_and, h_mask_value, limbRadix,
       Nat.and_two_pow_sub_one_eq_mod, h_low, UScalar.cast_val_eq, UScalarTy.numBits]
     exact Nat.mod_mod_of_dvd _ (by decide : 2 ^ 29 ∣ 2 ^ 32)
-  have h_carry_value : carry.val = sum.val / limbRadix := by
-    simpa only [Nat.shiftRight_eq_div_pow, limbRadix] using h_carry
-  refine ⟨?_, ?_, ?_⟩
-  · rw [h_w_value]
-    exact Nat.mod_lt _ (by decide)
-  · have h_bound : sum.val < 2 ^ 64 := sum.hBounds
-    simp only [limbRadix] at h_carry_value
-    omega
-  · rw [h_carry_value, h_w_value]
-    simpa only [Nat.mul_comm, Nat.add_comm] using Nat.mod_add_div sum.val limbRadix
+  have h_bound : sum.val < 2 ^ 64 := sum.hBounds
+  simp only [Nat.shiftRight_eq_div_pow] at h_carry
+  simp only [limbRadix] at h_w_value ⊢
+  omega
 
 end montgomery_reduce
 
@@ -441,33 +415,19 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       constants.L, Array.getElem!_Nat_eq, Array.make,
       List.getElem!_cons_zero, List.getElem!_cons_succ,
       pow_zero, pow_one, one_mul, mul_zero, add_zero]
-      at row0 row1 row2 row3 row4 row5 row6 row7 row8 row9 row10 row11 row12 row13
-        row14 row15 row16 ⊢
+      at *
     omega
   clear * - h_range h_adjustment h_identity hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7
-  have h_radix_pos : 0 < montgomeryRadix := by
-    exact pow_pos (by decide : 0 < (2 : Nat)) 261
   have h_quotient : quotient < 2 * order := by
-    apply (Nat.mul_lt_mul_right h_radix_pos).mp
-    rw [← h_identity]
-    calc
-      wideAsNat limbs + asNat adjustment * order <
-          montgomeryRadix * order + montgomeryRadix * order :=
-        Nat.add_lt_add h_range (Nat.mul_lt_mul_of_pos_right h_adjustment order_pos)
-      _ = 2 * order * montgomeryRadix := by ring
+    apply Nat.lt_of_mul_lt_mul_right (a := montgomeryRadix)
+    rw [← h_identity, Nat.mul_assoc, Nat.mul_comm order, two_mul]
+    exact Nat.add_lt_add h_range (Nat.mul_lt_mul_of_pos_right h_adjustment order_pos)
   have h_small : quotient < 2 ^ 254 := by
-    calc
-      quotient < 2 * order := h_quotient
-      _ < 2 * 2 ^ 253 := Nat.mul_lt_mul_of_pos_left order_lt_two_pow_253 (by decide)
-      _ = 2 ^ 254 := by decide
-  have h_top_weight : limbRadix ^ 8 * c16.val ≤ quotient := by
-    exact Nat.le_add_left _ _
+    have := order_lt_two_pow_253
+    omega
   have h_top : c16.val < 2 ^ 22 := by
-    apply (Nat.mul_lt_mul_left (by decide : 0 < 2 ^ 232)).mp
-    rw [← pow_add]
-    have h_weight : 2 ^ 232 * c16.val ≤ quotient := by
-      simpa only [limbRadix, ← pow_mul, show 29 * 8 = 232 from rfl] using h_top_weight
-    exact lt_of_le_of_lt h_weight h_small
+    simp only [quotient, limbRadix] at h_small
+    omega
   refine spec_bind (UScalar.cast_inBounds_spec .U32 c16 ?_) ?_
   · rw [UScalar.max_UScalarTy_U32_eq, U32.max_eq]
     exact h_top.le.trans (by decide)
@@ -491,18 +451,8 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
   conv at h_sub_spec => lhs; unfold constants.L
   refine spec_mono h_sub_spec ?_
   intro result ⟨h_result, h_sub, h_canonical⟩
-  have h_residue : asNat result % order = quotient % order := by
-    rw [constants.L_spec, h_pre] at h_sub
-    simpa only [Nat.add_mod, Nat.mod_self, Nat.add_zero, Nat.mod_mod] using h_sub
-  have h_scaled : (quotient * montgomeryRadix) % order = wideAsNat limbs % order := by
-    have h := congrArg (fun n : Nat => n % order) h_identity
-    simpa only [Nat.add_mul_mod_self_right] using h.symm
+  rw [constants.L_spec, h_pre, Nat.add_mod_right] at h_sub
   refine ⟨?_, h_result, h_canonical⟩
-  calc
-    (asNat result * montgomeryRadix) % order =
-        ((asNat result % order) * (montgomeryRadix % order)) % order := Nat.mul_mod _ _ _
-    _ = ((quotient % order) * (montgomeryRadix % order)) % order := by rw [h_residue]
-    _ = (quotient * montgomeryRadix) % order := (Nat.mul_mod _ _ _).symm
-    _ = wideAsNat limbs % order := h_scaled
+  rw [← Nat.mod_mul_mod, h_sub, Nat.mod_mul_mod, ← h_identity, Nat.add_mul_mod_self_right]
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
