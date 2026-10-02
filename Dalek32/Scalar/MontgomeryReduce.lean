@@ -495,6 +495,53 @@ end Extract
 
 end Halves
 
+/-- The Montgomery quotient is below `2 * order` when the input is below `R * order`: the
+adjustment contributes less than `R * order`, and the identity divides the total by `R`. -/
+private theorem quotient_lt_two_order {wide adj q : Nat}
+    (h_range : wide < montgomeryRadix * order) (h_adj : adj < montgomeryRadix)
+    (h_identity : wide + adj * order = q * montgomeryRadix) : q < 2 * order := by
+  have h_radix_pos : 0 < montgomeryRadix := pow_pos (by decide : 0 < (2 : Nat)) 261
+  apply (Nat.mul_lt_mul_right h_radix_pos).mp
+  rw [← h_identity]
+  calc
+    wide + adj * order < montgomeryRadix * order + montgomeryRadix * order :=
+      Nat.add_lt_add h_range (Nat.mul_lt_mul_of_pos_right h_adj order_pos)
+    _ = 2 * order * montgomeryRadix := by ring
+
+/-- A quotient below `2 * order < 2 ^ 254` has its weight-`B ^ 8` digit below `2 ^ 22`. -/
+private theorem top_limb_lt {q c : Nat} (hq : q < 2 * order) (hc : limbRadix ^ 8 * c ≤ q) :
+    c < 2 ^ 22 := by
+  have h_small : q < 2 ^ 254 := by
+    calc
+      q < 2 * order := hq
+      _ < 2 * 2 ^ 253 := Nat.mul_lt_mul_of_pos_left order_lt_two_pow_253 (by decide)
+      _ = 2 ^ 254 := by decide
+  apply (Nat.mul_lt_mul_left (by decide : 0 < 2 ^ 232)).mp
+  rw [← pow_add]
+  have h_weight : 2 ^ 232 * c ≤ q := by
+    simpa only [limbRadix, ← pow_mul, show 29 * 8 = 232 from rfl] using hc
+  exact lt_of_le_of_lt h_weight h_small
+
+/-- A nine-entry literal array is normalized when every entry is a radix digit. -/
+private theorem isNormalized_make (a0 a1 a2 a3 a4 a5 a6 a7 a8 : U32)
+    (h0 : a0.val < limbRadix) (h1 : a1.val < limbRadix) (h2 : a2.val < limbRadix)
+    (h3 : a3.val < limbRadix) (h4 : a4.val < limbRadix) (h5 : a5.val < limbRadix)
+    (h6 : a6.val < limbRadix) (h7 : a7.val < limbRadix) (h8 : a8.val < limbRadix) :
+    IsNormalized (Array.make 9#usize [a0, a1, a2, a3, a4, a5, a6, a7, a8]) := by
+  intro j hj
+  simp only [Array.getElem!_Nat_eq, Array.make]
+  match j, hj with
+  | 0, _ => simpa only [List.getElem!_cons_zero] using h0
+  | 1, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h1
+  | 2, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h2
+  | 3, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h3
+  | 4, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h4
+  | 5, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h5
+  | 6, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h6
+  | 7, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h7
+  | 8, _ => simpa only [List.getElem!_cons_zero, List.getElem!_cons_succ] using h8
+  | _ + 9, h => exact absurd h (by omega)
+
 /-! ## Gluing the two halves -/
 
 /-- **Spec theorem for
@@ -524,12 +571,9 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
   let quotient : Nat := r0.val + limbRadix * r1.val + limbRadix ^ 2 * r2.val +
     limbRadix ^ 3 * r3.val + limbRadix ^ 4 * r4.val + limbRadix ^ 5 * r5.val +
     limbRadix ^ 6 * r6.val + limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val
-  have h_adjustment : asNat adjustment < montgomeryRadix := by
-    apply asNat_bounded
-    intro i hi
-    interval_cases i <;>
-      simp only [adjustment, Array.getElem!_Nat_eq, Array.make,
-        List.getElem!_cons_zero, List.getElem!_cons_succ] <;> assumption
+  have h_adjustment : asNat adjustment < montgomeryRadix :=
+    asNat_bounded adjustment
+      (isNormalized_make n0 n1 n2 n3 n4 n5 n6 n7 n8 hn0 hn1 hn2 hn3 hn4 hn5 hn6 hn7 hn8)
   have h_identity : wideAsNat limbs + asNat adjustment * order = quotient * montgomeryRadix := by
     -- Weighting the extract identity by `limbRadix ^ 9` and adding the adjust identity
     -- recovers the full Montgomery identity.
@@ -538,27 +582,9 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       List.getElem!_cons_succ]
     zify at h_adjust h_extract ⊢
     linear_combination h_adjust + (limbRadix : Int) ^ 9 * h_extract
-  have h_radix_pos : 0 < montgomeryRadix := pow_pos (by decide : 0 < (2 : Nat)) 261
-  have h_quotient : quotient < 2 * order := by
-    apply (Nat.mul_lt_mul_right h_radix_pos).mp
-    rw [← h_identity]
-    calc
-      wideAsNat limbs + asNat adjustment * order <
-          montgomeryRadix * order + montgomeryRadix * order :=
-        Nat.add_lt_add h_range (Nat.mul_lt_mul_of_pos_right h_adjustment order_pos)
-      _ = 2 * order * montgomeryRadix := by ring
-  have h_small : quotient < 2 ^ 254 := by
-    calc
-      quotient < 2 * order := h_quotient
-      _ < 2 * 2 ^ 253 := Nat.mul_lt_mul_of_pos_left order_lt_two_pow_253 (by decide)
-      _ = 2 ^ 254 := by decide
+  have h_quotient : quotient < 2 * order := quotient_lt_two_order h_range h_adjustment h_identity
   have h_top_weight : limbRadix ^ 8 * carry16.val ≤ quotient := Nat.le_add_left _ _
-  have h_top : carry16.val < 2 ^ 22 := by
-    apply (Nat.mul_lt_mul_left (by decide : 0 < 2 ^ 232)).mp
-    rw [← pow_add]
-    have h_weight : 2 ^ 232 * carry16.val ≤ quotient := by
-      simpa only [limbRadix, ← pow_mul, show 29 * 8 = 232 from rfl] using h_top_weight
-    exact lt_of_le_of_lt h_weight h_small
+  have h_top : carry16.val < 2 ^ 22 := top_limb_lt h_quotient h_top_weight
   step -grind -threadGrindState with UScalar.cast_inBounds_spec as ⟨r8, h_r8⟩ by
     rw [UScalar.max_UScalarTy_U32_eq, U32.max_eq]
     exact h_top.le.trans (by decide)
@@ -568,14 +594,11 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       pow_mul, Finset.sum_range_succ, Finset.sum_range_zero, zero_add,
       Array.getElem!_Nat_eq, Array.make, List.getElem!_cons_zero,
       List.getElem!_cons_succ, quotient, limbRadix, h_r8, pow_zero, pow_one, one_mul]
-  have h_normalized : IsNormalized pre := by
-    -- Keep the context small: `interval_cases` below is sensitive to its size.
-    clear * - hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7 h_r8 h_top
-    intro i hi
-    interval_cases i <;>
-      simp only [pre, Array.getElem!_Nat_eq, Array.make,
-        List.getElem!_cons_zero, List.getElem!_cons_succ]
-    all_goals first | assumption | (rw [h_r8]; exact h_top.trans (by decide))
+  have h_r8_bound : r8.val < limbRadix := by
+    rw [h_r8]
+    exact h_top.trans (by decide)
+  have h_normalized : IsNormalized pre :=
+    isNormalized_make r0 r1 r2 r3 r4 r5 r6 r7 r8 hr0 hr1 hr2 hr3 hr4 hr5 hr6 hr7 h_r8_bound
   have h_L : IsNormalized constants.L := constants.L_limbs_lt
   have h_lower : asNat constants.L ≤ asNat pre + order := by
     rw [constants.L_spec]
