@@ -399,7 +399,7 @@ theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
         lowWide limbs + adjustPartial n0.val n1.val n2.val n3.val n4.val n5.val n6.val n7.val
           n8.val = carry8.val * limbRadix ^ 9 ⦄ := by
   unfold montgomery_reduce_adjust
-  step* -grind -threadGrindState by first | assumption | norm_num [U64.max_eq, limbRadix]
+  step* -grind -threadGrindState by first | decide | norm_num [U64.max_eq, limbRadix]
   -- Express the nine rows in the input coefficients and quotient digits.
   simp only [*] at carry_post3 carry1_post3 carry2_post3 carry3_post3 carry4_post3
   simp only [*] at carry5_post3 carry6_post3 carry7_post3 carry8_post3
@@ -478,7 +478,7 @@ theorem montgomery_reduce_extract_spec (limbs : Array U64 17#usize)
           limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val ⦄ := by
   unfold montgomery_reduce_extract
   step* -grind -threadGrindState by
-    first | assumption | exact constants.L_limbs_lt _ (by decide) | norm_num [U64.max_eq, limbRadix]
+    first | decide | exact constants.L_limbs_lt _ (by decide) | norm_num [U64.max_eq, limbRadix]
   -- Express the eight rows in the input coefficients and quotient digits.
   simp only [*] at carry9_post3 carry10_post3 carry11_post3 carry12_post3
   simp only [*] at carry13_post3 carry14_post3 carry15_post3 carry16_post3
