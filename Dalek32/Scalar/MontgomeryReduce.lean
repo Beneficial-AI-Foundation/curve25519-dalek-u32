@@ -251,14 +251,72 @@ private theorem asNat_mul_order_split (a : Scalar29) :
 private theorem montgomeryRadix_eq : montgomeryRadix = limbRadix ^ 9 := by
   simp only [montgomeryRadix, limbRadix, ← pow_mul]
 
-/-! ## The two halves
-
-Inside this section `step` evaluates every `constants.L` lookup it introduces to a literal, so
-that the overflow side conditions of the additions stay linear for `grind`. -/
+/-! ## The two halves -/
 section Halves
 
-attribute [local step_post_simps] constants.L Array.getElem!_Nat_eq Array.make
-  List.getElem!_cons_zero List.getElem!_cons_succ
+/-! ### A prepared lemma kit for `step*`
+
+Each operation of the two halves gets a specification that threads an explicit bound through
+the accumulator as a ghost variable.  `step*` infers the ghost variables by matching the
+hypotheses against the bounds already in the context, so no side condition ever needs the
+equality chain: every remaining proof obligation is a check between numerals. -/
+
+/-- Addition with the bound `A + B` threaded through. -/
+@[local step]
+private theorem add_bounded {A B : Nat} (x y : U64) (hx : x.val < A) (hy : y.val < B)
+    (hAB : A + B ≤ U64.max) :
+    x + y ⦃ (z : U64) => z.val = x.val + y.val ∧ z.val < A + B ⦄ := by
+  step -grind -threadGrindState with U64.add_spec as ⟨z, hz⟩ by omega
+  omega
+
+/-- The product of two radix digits is below `2 ^ 58`. -/
+@[local step]
+private theorem m_bounded (x y : U32) (hx : x.val < limbRadix) (hy : y.val < limbRadix) :
+    m x y ⦃ (r : U64) => r.val = x.val * y.val ∧ r.val < 2 ^ 58 ⦄ := by
+  step -grind -threadGrindState with m_spec as ⟨r, hr⟩
+  refine ⟨hr, ?_⟩
+  rw [hr]
+  exact (Nat.mul_lt_mul'' hx hy).trans_le (by norm_num [limbRadix])
+
+/-- Looking up a limb of `constants.L` returns a radix digit. -/
+@[local step]
+private theorem L_index_bounded (k : Usize) (hk : k.val < 9) :
+    Insts.CoreOpsIndexIndexUsizeU32.index constants.L k ⦃ (r : U32) =>
+      r = constants.L[k.val]! ∧ r.val < limbRadix ⦄ := by
+  step -grind -threadGrindState with Insts.CoreOpsIndexIndexUsizeU32.index_spec as ⟨r, hr⟩
+  rw [← Array.getElem!_Nat_eq] at hr
+  exact ⟨hr, hr ▸ constants.L_limbs_lt k.val hk⟩
+
+-- `step` does not backtrack when the precondition of the lemma it picked cannot be discharged;
+-- it leaves the precondition as an open goal instead of trying the next candidate.  A single
+-- limb-lookup lemma assuming `∀ i < 9, …` would thus be applied to `limbs[9]` in the extract
+-- half and get stuck, so each half registers its own lookup lemma, scoped to its section.
+section Adjust
+
+/-- Looking up one of the low nine coefficients returns a bounded value. -/
+@[local step]
+private theorem low_limb_index_bounded (limbs : Array U64 17#usize) (k : Usize)
+    (h_bounds : ∀ i < 9, limbs[i]!.val < 2 ^ 63) (hk : k.val < 9) :
+    limbs.index_usize k ⦃ (r : U64) => r = limbs[k.val]! ∧ r.val < 2 ^ 63 ⦄ := by
+  step -grind -threadGrindState with Array.index_usize_spec as ⟨r, hr⟩ by scalar_tac
+  have h : r = limbs[k.val]! := by
+    rw [hr, Array.getElem!_Nat_eq]
+    exact (getElem!_pos _ _ (by scalar_tac)).symm
+  exact ⟨h, h ▸ h_bounds k.val hk⟩
+
+/-- `part1_spec` with its overflow precondition split into a bound on the input and a check
+between numerals. -/
+@[local step]
+private theorem part1_bounded {A : Nat} (sum : U64) (hs : sum.val < A)
+    (hA : A + 2 ^ 58 ≤ U64.max) :
+    montgomery_reduce.part1 sum ⦃ (carry : U64) (p : U32) =>
+      p.val < limbRadix ∧
+      carry.val < 2 ^ 35 ∧
+      carry.val * limbRadix = sum.val + p.val * constants.L[0]!.val ⦄ := by
+  step -grind -threadGrindState with montgomery_reduce.part1_spec as ⟨carry, p, h1, h2, h3⟩ by
+    simp only [limbRadix, U64.max_eq] at hA ⊢
+    omega
+  exact ⟨h1, h2, h3⟩
 
 /-- The nine `part1` rows telescope to the low half of the Montgomery identity. -/
 private theorem adjust_identity {limbs : Array U64 17#usize}
@@ -292,9 +350,6 @@ private theorem adjust_identity {limbs : Array U64 17#usize}
     h3 * (limbRadix : Int) ^ 3 + h4 * (limbRadix : Int) ^ 4 + h5 * (limbRadix : Int) ^ 5 +
     h6 * (limbRadix : Int) ^ 6 + h7 * (limbRadix : Int) ^ 7 + h8 * (limbRadix : Int) ^ 8)
 
-set_option maxHeartbeats 1000000 in
--- `step*` symbolically executes eighty-five bindings, discharging an overflow side condition
--- for each addition, which does not fit in the default budget.
 /-- **Spec theorem for the adjust phase of
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce`**
 
@@ -314,32 +369,32 @@ theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
       ∃ n0 : U32, n0.val < limbRadix ∧
         lowWide limbs + adjustPartial n0.val n1.val n2.val n3.val n4.val n5.val n6.val n7.val
           n8.val = carry8.val * limbRadix ^ 9 ⦄ := by
-  -- `Array.index_usize_spec` describes the lookups with `limbs.val[i]`, so restate the bound in
-  -- that form for `grind`.
-  have h_bounds' : ∀ (i : Nat) (hi : i < 9), (limbs.val[i]'(by scalar_tac)).val < 2 ^ 63 := by
-    intro i hi
-    rw [← getElem!_pos _ _ (by scalar_tac), ← Array.getElem!_Nat_eq]
-    exact h_bounds i hi
   unfold montgomery_reduce_adjust
-  step* -grind -threadGrindState by
-    grind only [U64.max_eq, limbRadix, UScalar.ofNatCore_val_eq, Array.length_eq]
-  -- The five cached lookups are literals on both sides now.
-  simp only [i3_post, i8_post, i15_post, i24_post, i65_post, Array.getElem!_Nat_eq, constants.L,
-    Array.make, List.getElem!_cons_zero, List.getElem!_cons_succ, true_and]
-  refine ⟨carry1_post1, carry2_post1, carry3_post1, carry4_post1, carry5_post1, carry6_post1,
-    carry7_post1, carry8_post1, carry8_post2, n0, carry_post1, ?_⟩
+  step* -grind -threadGrindState by first | assumption | norm_num [U64.max_eq, limbRadix]
+  refine ⟨i3_post1, i8_post1, i15_post1, i24_post1, i65_post1, carry1_post1, carry2_post1,
+    carry3_post1, carry4_post1, carry5_post1, carry6_post1, carry7_post1, carry8_post1,
+    carry8_post2, n0, carry_post1, ?_⟩
   -- Express the nine rows in the input coefficients and quotient digits.
-  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry_post3 carry1_post3 carry2_post3
-  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry3_post3 carry4_post3
-  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry5_post3 carry6_post3
-  simp only [*, ← getElem!_pos, UScalar.ofNatCore_val_eq] at carry7_post3 carry8_post3
-  refine adjust_identity (c0 := carry.val) (c1 := carry1.val) (c2 := carry2.val)
-    (c3 := carry3.val) (c4 := carry4.val) (c5 := carry5.val) (c6 := carry6.val)
-    (c7 := carry7.val) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ <;>
-    simp only [Array.getElem!_Nat_eq, constants.L, Array.make, List.getElem!_cons_zero,
-      List.getElem!_cons_succ, UScalar.ofNatCore_val_eq]
-  exacts [carry_post3, carry1_post3, carry2_post3, carry3_post3, carry4_post3, carry5_post3,
-    carry6_post3, carry7_post3, carry8_post3]
+  simp only [*] at carry_post3 carry1_post3 carry2_post3 carry3_post3 carry4_post3
+  simp only [*] at carry5_post3 carry6_post3 carry7_post3 carry8_post3
+  exact adjust_identity carry_post3 carry1_post3 carry2_post3 carry3_post3 carry4_post3
+    carry5_post3 carry6_post3 carry7_post3 carry8_post3
+
+end Adjust
+
+section Extract
+
+/-- Looking up one of the high eight coefficients returns a bounded value. -/
+@[local step]
+private theorem high_limb_index_bounded (limbs : Array U64 17#usize) (k : Usize)
+    (h_bounds : ∀ i, 9 ≤ i → i < 17 → limbs[i]!.val < 2 ^ 63) (hk : 9 ≤ k.val)
+    (hk' : k.val < 17) :
+    limbs.index_usize k ⦃ (r : U64) => r = limbs[k.val]! ∧ r.val < 2 ^ 63 ⦄ := by
+  step -grind -threadGrindState with Array.index_usize_spec as ⟨r, hr⟩ by scalar_tac
+  have h : r = limbs[k.val]! := by
+    rw [hr, Array.getElem!_Nat_eq]
+    exact (getElem!_pos _ _ (by scalar_tac)).symm
+  exact ⟨h, h ▸ h_bounds k.val hk hk'⟩
 
 /-- The eight `part2` rows telescope to the high half of the Montgomery identity. -/
 private theorem extract_identity {limbs : Array U64 17#usize}
@@ -366,9 +421,6 @@ private theorem extract_identity {limbs : Array U64 17#usize}
     h12 * (limbRadix : Int) ^ 3 + h13 * (limbRadix : Int) ^ 4 + h14 * (limbRadix : Int) ^ 5 +
     h15 * (limbRadix : Int) ^ 6 + h16 * (limbRadix : Int) ^ 7)
 
-set_option maxHeartbeats 1000000 in
--- `step*` symbolically executes sixty bindings, discharging an overflow side condition for
--- each addition, which does not fit in the default budget.
 /-- **Spec theorem for the extract phase of
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce`**
 
@@ -392,28 +444,18 @@ theorem montgomery_reduce_extract_spec (limbs : Array U64 17#usize)
         r0.val + limbRadix * r1.val + limbRadix ^ 2 * r2.val + limbRadix ^ 3 * r3.val +
           limbRadix ^ 4 * r4.val + limbRadix ^ 5 * r5.val + limbRadix ^ 6 * r6.val +
           limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val ⦄ := by
-  -- `Array.index_usize_spec` describes the lookups with `limbs.val[i]`, so restate the bound in
-  -- that form for `grind`.
-  have h_bounds' : ∀ (i : Nat) (hi : 9 ≤ i ∧ i < 17),
-      (limbs.val[i]'(by scalar_tac)).val < 2 ^ 63 := by
-    intro i hi
-    rw [← getElem!_pos _ _ (by scalar_tac), ← Array.getElem!_Nat_eq]
-    exact h_bounds i hi.1 hi.2
   unfold montgomery_reduce_extract
   step* -grind -threadGrindState by
-    grind only [U64.max_eq, limbRadix, UScalar.ofNatCore_val_eq, Array.length_eq]
+    first | assumption | exact constants.L_limbs_lt _ (by decide) | norm_num [U64.max_eq, limbRadix]
   refine ⟨carry9_post1, carry10_post1, carry11_post1, carry12_post1, carry13_post1,
     carry14_post1, carry15_post1, carry16_post1, ?_⟩
   -- Express the eight rows in the input coefficients and quotient digits.
-  simp only [*, ← getElem!_pos] at carry9_post3 carry10_post3 carry11_post3 carry12_post3
-  simp only [*, ← getElem!_pos] at carry13_post3 carry14_post3 carry15_post3 carry16_post3
-  refine extract_identity (c9 := carry9.val) (c10 := carry10.val) (c11 := carry11.val)
-    (c12 := carry12.val) (c13 := carry13.val) (c14 := carry14.val) (c15 := carry15.val)
-    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ <;>
-    simp only [Array.getElem!_Nat_eq, constants.L, Array.make, List.getElem!_cons_zero,
-      List.getElem!_cons_succ, UScalar.ofNatCore_val_eq]
-  exacts [carry9_post3, carry10_post3, carry11_post3, carry12_post3, carry13_post3,
-    carry14_post3, carry15_post3, carry16_post3]
+  simp only [*] at carry9_post3 carry10_post3 carry11_post3 carry12_post3
+  simp only [*] at carry13_post3 carry14_post3 carry15_post3 carry16_post3
+  exact extract_identity carry9_post3 carry10_post3 carry11_post3 carry12_post3 carry13_post3
+    carry14_post3 carry15_post3 carry16_post3
+
+end Extract
 
 end Halves
 
