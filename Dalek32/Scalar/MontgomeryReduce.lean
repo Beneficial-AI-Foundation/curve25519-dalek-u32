@@ -399,6 +399,8 @@ theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
         lowWide limbs + adjustPartial n0.val n1.val n2.val n3.val n4.val n5.val n6.val n7.val
           n8.val = carry8.val * limbRadix ^ 9 ⦄ := by
   unfold montgomery_reduce_adjust
+  -- Side goals left to the discharger: the running overflow budget at each addition
+  -- (`A + B ≤ U64.max`, numerals), `part1`'s budget check, and literal index bounds.
   step* -grind -threadGrindState by first | decide | norm_num [U64.max_eq, limbRadix]
   -- Express the nine rows in the input coefficients and quotient digits.
   simp only [*] at carry_post3 carry1_post3 carry2_post3 carry3_post3 carry4_post3
@@ -477,6 +479,9 @@ theorem montgomery_reduce_extract_spec (limbs : Array U64 17#usize)
           limbRadix ^ 4 * r4.val + limbRadix ^ 5 * r5.val + limbRadix ^ 6 * r6.val +
           limbRadix ^ 7 * r7.val + limbRadix ^ 8 * carry16.val ⦄ := by
   unfold montgomery_reduce_extract
+  -- Side goals left to the discharger: the running overflow budget at each addition
+  -- (`A + B ≤ U64.max`, numerals), literal index bounds, and `m_bounded`'s bound on the
+  -- `constants.L` limbs, which are literal arguments in this half rather than lookups.
   step* -grind -threadGrindState by
     first | decide | exact constants.L_limbs_lt _ (by decide) | norm_num [U64.max_eq, limbRadix]
   -- Express the eight rows in the input coefficients and quotient digits.
