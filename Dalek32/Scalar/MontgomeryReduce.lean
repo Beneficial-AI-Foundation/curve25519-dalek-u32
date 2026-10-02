@@ -339,14 +339,11 @@ private theorem adjust_carry_bound (limbs : Array U64 17#usize)
     (hn8 : n8 < limbRadix)
     (h : lowWide limbs + adjustPartial n0 n1 n2 n3 n4 n5 n6 n7 n8 = c8 * limbRadix ^ 9) :
     c8 < 2 ^ 35 := by
-  have t0 := h_bounds 0 (by decide); have t1 := h_bounds 1 (by decide)
-  have t2 := h_bounds 2 (by decide); have t3 := h_bounds 3 (by decide)
-  have t4 := h_bounds 4 (by decide); have t5 := h_bounds 5 (by decide)
-  have t6 := h_bounds 6 (by decide); have t7 := h_bounds 7 (by decide)
-  have t8 := h_bounds 8 (by decide)
+  simp only [Nat.forall_lt_succ_right, Nat.not_lt_zero, false_implies, implies_true, true_and]
+    at h_bounds
   simp only [lowWide, adjustPartial, limbRadix, constants.L, Array.getElem!_Nat_eq, Array.make,
     List.getElem!_cons_zero, List.getElem!_cons_succ, UScalar.ofNatCore_val_eq, Nat.reducePow]
-    at h hn0 hn1 hn2 hn3 hn4 hn5 hn6 hn7 hn8 t0 t1 t2 t3 t4 t5 t6 t7 t8
+    at h hn0 hn1 hn2 hn3 hn4 hn5 hn6 hn7 hn8 h_bounds
   omega
 
 /-- The nine `part1` rows telescope to the low half of the Montgomery identity. -/
@@ -408,13 +405,12 @@ theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
   simp only [*] at carry5_post3 carry6_post3 carry7_post3 carry8_post3
   have h_identity := adjust_identity carry_post3 carry1_post3 carry2_post3 carry3_post3
     carry4_post3 carry5_post3 carry6_post3 carry7_post3 carry8_post3
-  -- The carry bound is redundant: it follows from the identity.
-  have h_carry8 := adjust_carry_bound limbs _ _ _ _ _ _ _ _ _ _ h_bounds carry_post1 carry1_post1
+  -- The lookup and digit conjuncts are postconditions.  The carry bound is redundant and is
+  -- derived from the identity rather than read off `carry8_post2`.
+  simp only [*, -carry8_post2, true_and]
+  exact ⟨adjust_carry_bound limbs _ _ _ _ _ _ _ _ _ _ h_bounds carry_post1 carry1_post1
     carry2_post1 carry3_post1 carry4_post1 carry5_post1 carry6_post1 carry7_post1 carry8_post1
-    h_identity
-  exact ⟨i3_post1, i8_post1, i15_post1, i24_post1, i65_post1, carry1_post1, carry2_post1,
-    carry3_post1, carry4_post1, carry5_post1, carry6_post1, carry7_post1, carry8_post1,
-    h_carry8, n0, carry_post1, h_identity⟩
+    h_identity, n0, carry_post1, h_identity⟩
 
 end Adjust
 
@@ -483,11 +479,11 @@ theorem montgomery_reduce_extract_spec (limbs : Array U64 17#usize)
   unfold montgomery_reduce_extract
   step* -grind -threadGrindState by
     first | assumption | exact constants.L_limbs_lt _ (by decide) | norm_num [U64.max_eq, limbRadix]
-  refine ⟨carry9_post1, carry10_post1, carry11_post1, carry12_post1, carry13_post1,
-    carry14_post1, carry15_post1, carry16_post1, ?_⟩
   -- Express the eight rows in the input coefficients and quotient digits.
   simp only [*] at carry9_post3 carry10_post3 carry11_post3 carry12_post3
   simp only [*] at carry13_post3 carry14_post3 carry15_post3 carry16_post3
+  -- The digit bounds are postconditions; only the identity remains.
+  simp only [*, true_and]
   exact extract_identity carry9_post3 carry10_post3 carry11_post3 carry12_post3 carry13_post3
     carry14_post3 carry15_post3 carry16_post3
 
@@ -511,16 +507,9 @@ private theorem quotient_lt_two_order {wide adj q : Nat}
 /-- A quotient below `2 * order < 2 ^ 254` has its weight-`B ^ 8` digit below `2 ^ 22`. -/
 private theorem top_limb_lt {q c : Nat} (hq : q < 2 * order) (hc : limbRadix ^ 8 * c ≤ q) :
     c < 2 ^ 22 := by
-  have h_small : q < 2 ^ 254 := by
-    calc
-      q < 2 * order := hq
-      _ < 2 * 2 ^ 253 := Nat.mul_lt_mul_of_pos_left order_lt_two_pow_253 (by decide)
-      _ = 2 ^ 254 := by decide
-  apply (Nat.mul_lt_mul_left (by decide : 0 < 2 ^ 232)).mp
-  rw [← pow_add]
-  have h_weight : 2 ^ 232 * c ≤ q := by
-    simpa only [limbRadix, ← pow_mul, show 29 * 8 = 232 from rfl] using hc
-  exact lt_of_le_of_lt h_weight h_small
+  have h_order := order_lt_two_pow_253
+  simp only [limbRadix, Nat.reducePow] at hc h_order ⊢
+  omega
 
 /-- A nine-entry literal array is normalized when every entry is a radix digit. -/
 private theorem isNormalized_make (a0 a1 a2 a3 a4 a5 a6 a7 a8 : U32)
