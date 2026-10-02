@@ -49,6 +49,7 @@ Cancels the low radix digit and returns the exact carry. -/
 theorem part1_spec (sum : U64) (h_sum : sum.val + limbRadix * limbRadix ≤ U64.max) :
     part1 sum ⦃ (carry : U64) (p : U32) =>
       p.val < limbRadix ∧
+      -- Redundant: follows from the other two conjuncts (see the proof).
       carry.val < 2 ^ 35 ∧
       carry.val * limbRadix = sum.val + p.val * constants.L[0]!.val ⦄ := by
   unfold part1
@@ -102,16 +103,21 @@ theorem part1_spec (sum : U64) (h_sum : sum.val + limbRadix * limbRadix ≤ U64.
   step as ⟨carry, h_carry⟩
   have h_carry_value : carry.val = joined.val / limbRadix := by
     simpa only [Nat.shiftRight_eq_div_pow, limbRadix] using h_carry
-  refine ⟨h_p_bound, ?_, ?_⟩
-  · have h_joined_bound : joined.val < 2 ^ 64 := joined.hBounds
-    simp only [limbRadix] at h_carry_value
-    omega
-  · have h_div := Nat.mod_add_div joined.val limbRadix
+  have h_eq : carry.val * limbRadix = sum.val + p.val * constants.L[0]!.val := by
+    have h_div := Nat.mod_add_div joined.val limbRadix
     have h_joined_value : joined.val = sum.val + p.val * constants.L[0]!.val := by
       simp only [h_joined, h_product, h_l0, Array.getElem!_Nat_eq]
     rw [h_joined_value, h_cancel] at h_div
     rw [h_carry_value, h_joined_value]
     simpa only [Nat.zero_add, Nat.mul_comm] using h_div
+  -- The carry bound is redundant: the equation, `p < B` and the overflow precondition give
+  -- `carry * B < 2 ^ 64`.
+  have h_carry_bound : carry.val < 2 ^ 35 := by
+    have h_prod : p.val * constants.L[0]!.val < limbRadix * limbRadix :=
+      Nat.mul_lt_mul'' h_p_bound (constants.L_limbs_lt 0 (by decide))
+    simp only [limbRadix, U64.max_eq] at h_eq h_prod h_sum
+    omega
+  exact ⟨h_p_bound, h_carry_bound, h_eq⟩
 
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce::part2`**
@@ -121,6 +127,7 @@ Splits off one radix digit without losing high bits. -/
 theorem part2_spec (sum : U64) :
     part2 sum ⦃ (carry : U64) (w : U32) =>
       w.val < limbRadix ∧
+      -- Redundant: follows from the other two conjuncts (see the proof).
       carry.val < 2 ^ 35 ∧
       carry.val * limbRadix + w.val = sum.val ⦄ := by
   unfold part2
@@ -138,14 +145,18 @@ theorem part2_spec (sum : U64) :
     exact Nat.mod_mod_of_dvd _ (by decide : 2 ^ 29 ∣ 2 ^ 32)
   have h_carry_value : carry.val = sum.val / limbRadix := by
     simpa only [Nat.shiftRight_eq_div_pow, limbRadix] using h_carry
-  refine ⟨?_, ?_, ?_⟩
-  · rw [h_w_value]
+  have h_w_bound : w.val < limbRadix := by
+    rw [h_w_value]
     exact Nat.mod_lt _ (by decide)
-  · have h_bound : sum.val < 2 ^ 64 := sum.hBounds
-    simp only [limbRadix] at h_carry_value
-    omega
-  · rw [h_carry_value, h_w_value]
+  have h_eq : carry.val * limbRadix + w.val = sum.val := by
+    rw [h_carry_value, h_w_value]
     simpa only [Nat.mul_comm, Nat.add_comm] using Nat.mod_add_div sum.val limbRadix
+  -- The carry bound is redundant: the equation and `sum < 2 ^ 64` give `carry * B < 2 ^ 64`.
+  have h_carry_bound : carry.val < 2 ^ 35 := by
+    have h_bound : sum.val < 2 ^ 64 := sum.hBounds
+    simp only [limbRadix] at h_eq
+    omega
+  exact ⟨h_w_bound, h_carry_bound, h_eq⟩
 
 end montgomery_reduce
 
@@ -318,6 +329,26 @@ private theorem part1_bounded {A : Nat} (sum : U64) (hs : sum.val < A)
     omega
   exact ⟨h1, h2, h3⟩
 
+/-- The carry out of the adjust phase is bounded by the identity alone: the low half of the wide
+value is below `2 ^ 295` and the low half of `n * L` below `2 ^ 293`. -/
+private theorem adjust_carry_bound (limbs : Array U64 17#usize)
+    (n0 n1 n2 n3 n4 n5 n6 n7 n8 c8 : Nat)
+    (h_bounds : ∀ i < 9, limbs[i]!.val < 2 ^ 63)
+    (hn0 : n0 < limbRadix) (hn1 : n1 < limbRadix) (hn2 : n2 < limbRadix) (hn3 : n3 < limbRadix)
+    (hn4 : n4 < limbRadix) (hn5 : n5 < limbRadix) (hn6 : n6 < limbRadix) (hn7 : n7 < limbRadix)
+    (hn8 : n8 < limbRadix)
+    (h : lowWide limbs + adjustPartial n0 n1 n2 n3 n4 n5 n6 n7 n8 = c8 * limbRadix ^ 9) :
+    c8 < 2 ^ 35 := by
+  have t0 := h_bounds 0 (by decide); have t1 := h_bounds 1 (by decide)
+  have t2 := h_bounds 2 (by decide); have t3 := h_bounds 3 (by decide)
+  have t4 := h_bounds 4 (by decide); have t5 := h_bounds 5 (by decide)
+  have t6 := h_bounds 6 (by decide); have t7 := h_bounds 7 (by decide)
+  have t8 := h_bounds 8 (by decide)
+  simp only [lowWide, adjustPartial, limbRadix, constants.L, Array.getElem!_Nat_eq, Array.make,
+    List.getElem!_cons_zero, List.getElem!_cons_succ, UScalar.ofNatCore_val_eq, Nat.reducePow]
+    at h hn0 hn1 hn2 hn3 hn4 hn5 hn6 hn7 hn8 t0 t1 t2 t3 t4 t5 t6 t7 t8
+  omega
+
 /-- The nine `part1` rows telescope to the low half of the Montgomery identity. -/
 private theorem adjust_identity {limbs : Array U64 17#usize}
     {n0 n1 n2 n3 n4 n5 n6 n7 n8 c0 c1 c2 c3 c4 c5 c6 c7 c8 : Nat}
@@ -365,20 +396,25 @@ theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
       i24 = constants.L[4]! ∧ i65 = constants.L[8]! ∧
       n1.val < limbRadix ∧ n2.val < limbRadix ∧ n3.val < limbRadix ∧ n4.val < limbRadix ∧
       n5.val < limbRadix ∧ n6.val < limbRadix ∧ n7.val < limbRadix ∧ n8.val < limbRadix ∧
+      -- Redundant: follows from the identity below (see the proof).
       carry8.val < 2 ^ 35 ∧
       ∃ n0 : U32, n0.val < limbRadix ∧
         lowWide limbs + adjustPartial n0.val n1.val n2.val n3.val n4.val n5.val n6.val n7.val
           n8.val = carry8.val * limbRadix ^ 9 ⦄ := by
   unfold montgomery_reduce_adjust
   step* -grind -threadGrindState by first | assumption | norm_num [U64.max_eq, limbRadix]
-  refine ⟨i3_post1, i8_post1, i15_post1, i24_post1, i65_post1, carry1_post1, carry2_post1,
-    carry3_post1, carry4_post1, carry5_post1, carry6_post1, carry7_post1, carry8_post1,
-    carry8_post2, n0, carry_post1, ?_⟩
   -- Express the nine rows in the input coefficients and quotient digits.
   simp only [*] at carry_post3 carry1_post3 carry2_post3 carry3_post3 carry4_post3
   simp only [*] at carry5_post3 carry6_post3 carry7_post3 carry8_post3
-  exact adjust_identity carry_post3 carry1_post3 carry2_post3 carry3_post3 carry4_post3
-    carry5_post3 carry6_post3 carry7_post3 carry8_post3
+  have h_identity := adjust_identity carry_post3 carry1_post3 carry2_post3 carry3_post3
+    carry4_post3 carry5_post3 carry6_post3 carry7_post3 carry8_post3
+  -- The carry bound is redundant: it follows from the identity.
+  have h_carry8 := adjust_carry_bound limbs _ _ _ _ _ _ _ _ _ _ h_bounds carry_post1 carry1_post1
+    carry2_post1 carry3_post1 carry4_post1 carry5_post1 carry6_post1 carry7_post1 carry8_post1
+    h_identity
+  exact ⟨i3_post1, i8_post1, i15_post1, i24_post1, i65_post1, carry1_post1, carry2_post1,
+    carry3_post1, carry4_post1, carry5_post1, carry6_post1, carry7_post1, carry8_post1,
+    h_carry8, n0, carry_post1, h_identity⟩
 
 end Adjust
 
