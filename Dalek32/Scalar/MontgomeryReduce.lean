@@ -34,8 +34,7 @@ namespace montgomery_reduce
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce::part1`**
 
 Cancels the low radix digit and returns the exact carry. -/
-@[step]
-theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
+private theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
     part1 sum ⦃ (carry : U64) (p : U32) =>
       p.val < limbRadix ∧
       carry.val < 2 ^ 35 ∧
@@ -89,8 +88,7 @@ theorem part1_spec (sum : U64) (h_sum : sum.val < 2 ^ 63 + 2 ^ 61) :
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce::part2`**
 
 Splits off one radix digit without losing high bits. -/
-@[step]
-theorem part2_spec (sum : U64) :
+private theorem part2_spec (sum : U64) :
     part2 sum ⦃ (carry : U64) (w : U32) =>
       w.val < limbRadix ∧
       carry.val < 2 ^ 35 ∧
@@ -114,6 +112,8 @@ theorem part2_spec (sum : U64) :
   omega
 
 end montgomery_reduce
+
+attribute [local step] montgomery_reduce.part1_spec montgomery_reduce.part2_spec
 
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_reduce`**
