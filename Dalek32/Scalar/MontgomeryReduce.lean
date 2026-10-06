@@ -142,7 +142,7 @@ private def highValue (limbs : Array U64 17#usize) (n1 n2 n3 n4 n5 n6 n7 n8 : U3
 
 /-- Cancels the low nine digits and records the bounded multiple of the order added. -/
 @[local step]
-private theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
+private theorem montgomeryReduceAdjust_spec (limbs : Array U64 17#usize)
     (h_bounds : ∀ i < 17, limbs[i]!.val < 2 ^ 63) :
     montgomeryReduceAdjust limbs
       ⦃ (l1 : U32) (n1 : U32) (l2 : U32) (n2 : U32) (l3 : U32) (n3 : U32)
@@ -299,7 +299,7 @@ private theorem montgomery_reduce_adjust_spec (limbs : Array U64 17#usize)
 
 /-- Splits the remaining value into eight normalized digits and the full top carry. -/
 @[local step]
-private theorem montgomery_reduce_extract_spec (limbs : Array U64 17#usize)
+private theorem montgomeryReduceExtract_spec (limbs : Array U64 17#usize)
     (n1 n2 n3 n4 n5 n6 n7 n8 : U32) (carry8 : U64)
     (h_bounds : ∀ i < 17, limbs[i]!.val < 2 ^ 63)
     (h_n : IsNormalized (Array.make 9#usize [0#u32, n1, n2, n3, n4, n5, n6, n7, n8]))
@@ -457,12 +457,12 @@ theorem montgomery_reduce_spec (limbs : Array U64 17#usize)
       IsNormalized result ∧
       asNat result < order ⦄ := by
   rw [montgomery_reduce_eq]
-  step -threadGrindState -grind -assumTac with montgomery_reduce_adjust_spec limbs h_bounds
+  step -threadGrindState -grind -assumTac with montgomeryReduceAdjust_spec limbs h_bounds
     as ⟨l1, n1, l2, n2, l3, n3, l4, n4, n5, n6, n7, l8, c8, n8,
       hl1, hl2, hl3, hl4, hl8, h_n, h_carry, adjustment, h_adjustment, h_identity⟩
   simp only [hl1, hl2, hl3, hl4, hl8]
   step -threadGrindState -grind -assumTac with
-    montgomery_reduce_extract_spec limbs n1 n2 n3 n4 n5 n6 n7 n8 c8 h_bounds h_n h_carry
+    montgomeryReduceExtract_spec limbs n1 n2 n3 n4 n5 n6 n7 n8 c8 h_bounds h_n h_carry
     as ⟨r0, r1, r2, r3, r4, r5, r6, c16, r7, h_digits, h_extract⟩
   let low : Scalar29 := Array.make 9#usize [r0, r1, r2, r3, r4, r5, r6, r7, 0#u32]
   let quotient : Nat := asNat low + limbRadix ^ 8 * c16.val
