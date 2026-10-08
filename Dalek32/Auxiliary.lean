@@ -67,8 +67,9 @@ theorem Array.uScalarToNatRadix_set {ty : UScalarTy} {n : Usize}
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
-theorem Array.toNatField2625_congr {ty : UScalarTy}
-    (x y : Array (UScalar ty) 10#usize) (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
+theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
+    (x : Array (UScalar ty) 10#usize) (y : Array (UScalar ty') 10#usize)
+    (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
       x.uScalarToNatField2625 = y.uScalarToNatField2625 := by
   unfold uScalarToNatField2625
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
@@ -179,21 +180,6 @@ Analogue of `Nat.two_pow_add_eq_or_of_lt` but with reversed order. -/
 theorem Nat.or_two_pow_eq_add_of_lt {a b i : Nat} (h : a < 2 ^ i) :
     a ||| b * 2 ^ i = a + b * 2 ^ i := by
   rw [Nat.lor_comm, Nat.mul_comm, ← Nat.two_pow_add_eq_or_of_lt h, Nat.add_comm]
-
-
-/-- Adding a low part `m < l` to a multiple of `l` commutes with reduction modulo `k * l` -/
-theorem Nat.add_mul_mod_mul_right_of_lt {m n k l : Nat} (hm : m < l) :
-    (m + n * l) % (k * l) = m + n * l % (k * l) := by
-  by_cases hk : 0 < k
-  · have hlt : m + n * l % (k * l) < k * l := by
-      rw [Nat.mul_mod_mul_right]
-      calc m + n % k * l
-          < l + n % k * l := Nat.add_lt_add_right hm _
-        _ = (n % k + 1) * l := by ring
-        _ ≤ k * l := Nat.mul_le_mul_right _ (Nat.mod_lt n hk)
-    have hmk : m < k * l := Nat.lt_of_lt_of_le hm (Nat.le_mul_of_pos_left l hk)
-    rw [Nat.add_mod, Nat.mod_eq_of_lt hmk, Nat.mod_eq_of_lt hlt]
-  · simp [Nat.eq_zero_of_not_pos hk]
 
 
 namespace Finset
