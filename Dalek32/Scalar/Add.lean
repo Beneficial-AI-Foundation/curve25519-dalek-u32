@@ -14,6 +14,23 @@ import Dalek32.Scalar.Zero
 
 Addition with a single conditional subtraction of the scalar order.
 Source: "curve25519-dalek/src/backend/serial/u32/scalar.rs", lines 172-185.
+
+## Correspondence with the `u64` backend spec
+
+`add_spec` mirrors `Scalar52.add_spec` in curve25519-dalek-lean-verify
+("Curve25519Dalek/Specs/Backend/Serial/U64/Scalar/Scalar52/Add.lean"):
+
+| `u32` (this file)          | `u64` (`Scalar52`)                       |
+|----------------------------|------------------------------------------|
+| `order`                    | `L`                                      |
+| `asNat`                    | `Scalar52_as_Nat`                        |
+| `IsNormalized` (9 limbs, each `< 2^29`) | `∀ i < 5, limb i < 2^52`    |
+| `asNat a < order`          | `Scalar52_as_Nat a < L`                  |
+| `asNat b < order`          | `Scalar52_as_Nat b ≤ L` (weaker there)   |
+| `x % order = y % order`    | `x ≡ y [MOD L]`                          |
+
+The postconditions say the same thing: the result is normalized, congruent to `a + b`
+modulo the order, and canonical (`< order`).
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
