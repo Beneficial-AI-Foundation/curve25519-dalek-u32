@@ -36,6 +36,16 @@ set_option linter.hashCommand false in
   letRange 1 10 => reduceFoldIn
   letRange 3 21 => reduceCasts
 
+/-- Interleaved carry chain of `reduce`: carries limbs `0` to `8` into their successors following
+the order (0,4,1,5,2,6,3,7,4,8). -/
+add_decl_doc reduceCarryChain
+
+/-- `× 19` fold-in of `reduce`: adds `19` times the carry out of limb `9` to limb `0`. -/
+add_decl_doc reduceFoldIn
+
+/-- Cast packing of `reduce`: casts the ten `u64` limbs to `u32` into a `FieldElement2625`. -/
+add_decl_doc reduceCasts
+
 
 /-Helper theorem that keeps track of the bounds that hold for the limbs of an array after a carry.-/
 private theorem carry_bounds {s1 s2 : Finset Nat} (z z' : Array U64 10#usize) (i : Nat)
