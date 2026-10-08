@@ -250,7 +250,7 @@ The postconditions for `reduce` are the represented value preservation modulo `p
 is reduced under the radix plus some occasional small leeway. Here we state a constant bound of
 `2^26` on the limbs for when this simpler form is enough. However, some functions do require a
 tighter bound on the odd limbs, hence we give a stronger statement too where odd limbs are bounded
-by `2^25 + 2^28`. This covers even the largest excess over the radix coming from limb 1.
+by `2^25 + 2^18`. This covers even the largest excess over the radix coming from limb 1.
 The proof is compositional: `reduce_decomp` splits `reduce` into the carry chain, the `× 19`
 fold-in, a final carry and the cast packing, and `step*` chains the spec theorem of each phase.
 The congruence then follows from the phase equalities, the uniform `2 ^ 26` bound from the limb

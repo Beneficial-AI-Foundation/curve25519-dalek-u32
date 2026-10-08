@@ -332,7 +332,7 @@ worst case is limb `0`), which is at most `2 ^ 63 - 2 ^ 38`, so even after the d
 `square2` it meets the `2 ^ 64 - 2 ^ 39` precondition of `reduce_spec`. -/
 @[step]
 theorem square_inner_spec (self : FieldElement2625)
-    (h_self : ∀ i, i < 10 → self[i]!.val < 2 ^ 27) :
+    (h_self : ∀ i < 10, self[i]!.val < 2 ^ 27) :
     square_inner self ⦃ (result : Array U64 10#usize) =>
       result.uScalarToNatField2625 % p = self.toNat ^ 2 % p ∧
       (∀ i, i < 10 → result[i]!.val < 267 * 2 ^ 54) ⦄ := by
