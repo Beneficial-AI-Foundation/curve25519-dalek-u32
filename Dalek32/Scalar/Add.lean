@@ -27,10 +27,11 @@ Source: "curve25519-dalek/src/backend/serial/u32/scalar.rs", lines 172-185.
 | `IsNormalized` (9 limbs, each `< 2^29`) | `∀ i < 5, limb i < 2^52`    |
 | `asNat a < order`          | `Scalar52_as_Nat a < L`                  |
 | `asNat b < order`          | `Scalar52_as_Nat b ≤ L` (weaker there)   |
-| `x % order = y % order`    | `x ≡ y [MOD L]`                          |
+| `r = (a + b) % order`      | `r ≡ a + b [MOD L]`                      |
 
-The postconditions say the same thing: the result is normalized, congruent to `a + b`
-modulo the order, and canonical (`< order`).
+The postconditions say the same thing: the result is normalized, canonical (`< order`), and
+congruent to `a + b` modulo the order. Given canonicity, that congruence is stated here as an
+equation.
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
@@ -40,7 +41,7 @@ namespace Curve25519Dalek.backend.serial.u32.scalar.Scalar29
 namespace Add
 
 /-- Normalized sum prefix, bounded carry, and carry conservation. -/
-def Invariant (a b : Scalar29) (iter : core.ops.range.Range Usize)
+private def Invariant (a b : Scalar29) (iter : core.ops.range.Range Usize)
     (sum : Scalar29) (carry : U32) : Prop :=
   iter.end = 9#usize ∧
   iter.start.val ≤ 9 ∧
@@ -184,7 +185,7 @@ theorem add_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
     (h_a_lt : asNat a < order) (h_b_lt : asNat b < order) :
     add a b ⦃ (result : Scalar29) =>
       IsNormalized result ∧
-      asNat result % order = (asNat a + asNat b) % order ∧
+      asNat result = (asNat a + asNat b) % order ∧
       asNat result < order ⦄ := by
   unfold add
   step as ⟨shifted, h_shifted⟩
@@ -209,7 +210,7 @@ theorem add_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
     as ⟨result, h_result, h_mod, h_lt⟩
   refine ⟨h_result, ?_, h_lt⟩
   rw [constants.L_spec, h_sum_eq] at h_mod
-  rw [← h_mod]
+  rw [← Nat.mod_eq_of_lt h_lt, ← h_mod]
   simp only [Nat.add_mod, Nat.mod_self, Nat.add_zero, Nat.mod_mod]
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
