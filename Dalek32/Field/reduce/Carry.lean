@@ -87,7 +87,6 @@ theorem reduce.carry_spec (z : Array U64 10#usize) (i : Usize)
       · simp only [*, Array.getElem!_Nat_set_eq (z.set _ _) i i.val _ (by scalar_tac)]
         simp_lists
         rewrite [UScalar.val_and]
-        conv => lhs; arg 2; rewrite [← UScalar.bv_toNat]
         simp only [*, Nat.and_two_pow_sub_one_eq_mod]
       --Carrying
       · simp only [*, Array.getElem!_Nat_set_ne (z.set _ _) i (i.val + 1) _ (by scalar_tac),
