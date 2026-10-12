@@ -27,11 +27,11 @@ Source: "curve25519-dalek/src/backend/serial/u32/scalar.rs", lines 394-396.
 | `IsNormalized a` (9 limbs, each `< 2^29`)       | `∀ i < 5, m[i]! < 2^62`     |
 | `asNat a ^ 2`                                   | `m * m`                     |
 | `asNat a ^ 2 < montgomeryRadix * order`         | `m * m < R * L`             |
-| `(r * montgomeryRadix) % order = a ^ 2 % order` | `(m * m) % L = (w * R) % L` |
+| `a ^ 2 % order = (r * montgomeryRadix) % order` | `(m * m) % L = (w * R) % L` |
 | `IsNormalized result`                           | `∀ i < 5, w[i]! < 2^52`     |
 
-The postconditions say the same thing: the result times the Montgomery radix is congruent to
-`a ^ 2` modulo the order, it is normalized, and it is canonical (`< order`).
+The postconditions say the same thing: `a ^ 2` is congruent to the result times the Montgomery
+radix modulo the order, the result is normalized, and it is canonical (`< order`).
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
@@ -41,19 +41,20 @@ namespace Curve25519Dalek.backend.serial.u32.scalar.Scalar29
 /-- **Spec theorem for
 `curve25519_dalek::backend::serial::u32::scalar::Scalar29::montgomery_square`**
 
-Returns the normalized canonical Montgomery square. -/
+• No panic (always returns successfully) when every limb of `a` is `< 2^29` and
+  `asNat a ^ 2 < montgomeryRadix * order`
+• The result satisfies the Montgomery squaring property:
+  `a ^ 2 ≡ result * R (mod order)`, where `R = montgomeryRadix = 2^261`
+• The result is normalized (every limb `< 2^29`) and canonical (`asNat result < order`) -/
 @[step]
 theorem montgomery_square_spec (a : Scalar29) (h_a : IsNormalized a)
     (h_range : asNat a ^ 2 < montgomeryRadix * order) :
     montgomery_square a ⦃ (result : Scalar29) =>
-      (asNat result * montgomeryRadix) % order = asNat a ^ 2 % order ∧
+      asNat a ^ 2 % order = (asNat result * montgomeryRadix) % order ∧
       IsNormalized result ∧
       asNat result < order ⦄ := by
   unfold montgomery_square
-  step with square_internal_spec a h_a as ⟨wide, h_wide, h_wide_bounds⟩
-  step with montgomery_reduce_spec wide
-    (fun i hi => Nat.lt_trans (h_wide_bounds i hi) (by decide)) (h_wide ▸ h_range)
-    as ⟨result, h_mod, h_result, h_lt⟩
-  exact ⟨h_wide ▸ h_mod, h_result, h_lt⟩
+  step*
+  exact h_a
 
 end Curve25519Dalek.backend.serial.u32.scalar.Scalar29
