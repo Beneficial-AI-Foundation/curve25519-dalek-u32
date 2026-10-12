@@ -206,7 +206,6 @@ theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
   · simp only [*]; simp_lists; simp only [*, Nat.shiftRight_eq_div_pow]
   · simp only [*]; simp_lists
     conv => lhs; simp only [‹(_ : Nat) = _ &&& _›, UScalar.val_and]
-    nth_rewrite 2 [← UScalar.bv_toNat]
     conv => lhs; arg 2; simp only [*]
     rewrite [Nat.and_two_pow_sub_one_eq_mod _ _]
     simp only [*]; simp_lists
