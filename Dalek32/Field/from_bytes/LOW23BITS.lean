@@ -22,7 +22,7 @@ Bit shift to the left by 23 in terms of natural numbers is multiplying by 2^23, 
 equals to 2^23-1. -/
 @[step]
 theorem from_bytes.LOW_23_BITS_spec :
-    from_bytes.LOW_23_BITS ⦃ (result : U64) => result.bv.toNat = 2^23-1 ⦄ := by
+    from_bytes.LOW_23_BITS ⦃ (result : U64) => result.val = 2 ^ 23 - 1 ⦄ := by
   unfold from_bytes.LOW_23_BITS
   rfl
 
