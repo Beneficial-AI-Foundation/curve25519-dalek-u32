@@ -51,21 +51,21 @@ add_decl_doc reduceCasts
 private theorem carry_bounds {s1 s2 : Finset Nat} (z z' : Array U64 10#usize) (i : Nat)
   (hsub1 : s1 ⊆ range 10) (hsub2 : s2 ⊆ range 10)
   --`s1` is the set of indices that underwent masking and haven't been touched since
-  (hs1 : ∀ j, j ∈ s1 → z[j]!.val < 2 ^ (26 - j % 2))
+  (hs1 : ∀ j, j ∈ s1 → z[j]!.val < limbRadix j)
   --`s2` is the set of indices for which the initial bound holds, i.e. they can receive a carry
   (hs2 : ∀ j, j ∈ s2 → z[j]!.val ≤ 2 ^ 64 - 2 ^ 39)
   --Postconditions from reduce.carry
-  (hmask : z'[i]!.val = z[i]!.val % 2 ^ (26 - i % 2))
-  (hcarry : z'[i + 1]!.val = z[i + 1]!.val + z[i]!.val / 2 ^ (26 - i % 2))
+  (hmask : z'[i]!.val = z[i]!.val % limbRadix i)
+--  (hcarry : z'[i + 1]!.val = z[i + 1]!.val + z[i]!.val / limbRadix i)
   (hrest : ∀ j, j < 10 → j ≠ i → j ≠ i + 1 → z'[j]!.val = z[j]!.val)
   --Bound on the index
   (hi : i < 10) :
   --After a carry at `i` the masking bound holds for limb `i`, but we cannot guarantee it for `i+1`
-    (∀ j, j ∈ s1 \ {i + 1} ∪ {i} → z'[j]!.val < 2 ^ (26 - j % 2)) ∧
+    (∀ j, j ∈ s1 \ {i + 1} ∪ {i} → z'[j]!.val < limbRadix j) ∧
   --After a carry at `i` the initial bound holds for limb `i`, but we cannot guarantee it for `i+1`
     (∀ j, j ∈ s2 \ {i + 1} ∪ {i} → z'[j]!.val ≤ 2 ^ 64 - 2 ^ 39) ∧
   --After a carry at `i` we cannot guarantee that `i+1` can be carried without overflow
-    (∀ j, j + 1 ∈ s2 \ {i} → z'[j + 1]!.val + z'[j]!.val / 2 ^ (26 - j % 2) < 2 ^ 64) ∧
+    (∀ j, j + 1 ∈ s2 \ {i} → z'[j + 1]!.val + z'[j]!.val / limbRadix j < 2 ^ 64) ∧
     (s1 \ {i + 1} ∪ {i} ⊆ range 10) ∧
     (s2 \ {i + 1} ∪ {i} ⊆ range 10) := by
   split_conjs
@@ -79,20 +79,19 @@ private theorem carry_bounds {s1 s2 : Finset Nat} (z z' : Array U64 10#usize) (i
       exact Nat.le_of_lt (
         Nat.lt_of_lt_of_le
           (Nat.mod_lt _ (Nat.two_pow_pos _))
-          (Nat.le_trans (m := 2^26)
-            (by rewrite [Nat.pow_le_pow_iff_right (by decide)]; exact Nat.sub_le _ _ )
+          (Nat.le_trans (m := 2 ^ 26)
+            (by rewrite [limbRadix, Nat.pow_le_pow_iff_right (by decide)]; exact Nat.sub_le _ _ )
             (by decide)))
     · rewrite [hrest j (by rewrite [← mem_range]; grind) hij (by grind)]; exact hs2 j (by grind)
   · intro j hj
     by_cases hij : j = i
-    · rewrite [hij, hcarry, hmask]
-      rewrite [Nat.div_eq_of_lt (Nat.mod_lt _ (Nat.two_pow_pos _))]
-      rewrite [← hcarry]
+    · rewrite [hij, hmask]
+      rewrite [limbRadix, Nat.div_eq_of_lt (Nat.mod_lt _ (Nat.two_pow_pos _))]
       agrind
     · have h1 := hs2 (j + 1) (by rewrite [mem_sdiff] at hj; exact hj.1)
       rewrite [hrest (j + 1) (by grind) (by grind) (by rw [Nat.add_one_ne_add_one_iff]; exact hij)]
       calc
-        _ ≤ 2 ^ 64 - 2 ^ 39 + (2 ^ 64 - 1) / 2 ^ (26 - j % 2) :=
+        _ ≤ 2 ^ 64 - 2 ^ 39 + (2 ^ 64 - 1) / limbRadix j :=
           Nat.add_le_add h1 (Nat.div_le_div_right (by scalar_tac))
         _ ≤ 2 ^ 64 - 2 ^ 39 + (2 ^ 64 - 1) / 2 ^ 25 :=
           Nat.add_le_add_left (Nat.div_le_div_left
@@ -111,8 +110,8 @@ private theorem reduceCarryChain_spec (z : Array U64 10#usize)
     reduceCarryChain z ⦃ (z10 : Array U64 10#usize) =>
       --The first bound is redundant, but helps step* discharging goals later
       (∀ j, j < 9 → z10[j]!.val < 2 ^ 26) ∧
-      (∀ j, j < 9 → j ≠ 5 → z10[j]!.val < 2 ^ (26 - j % 2)) ∧
-      z10[5]!.val < 2 ^ 25 + 2 ^ 14 ∧
+      (∀ j, j < 9 → j ≠ 5 → z10[j]!.val < limbRadix j) ∧
+      z10[5]!.val < limbRadix 5 + 2 ^ 14 ∧
       z10.uScalarToNatField2625 = z.uScalarToNatField2625 ⦄ := by
   unfold reduceCarryChain
   step
@@ -120,12 +119,12 @@ private theorem reduceCarryChain_spec (z : Array U64 10#usize)
   have hz' := hz
   conv at hz' in _ < 10 => rewrite [← mem_range]
   have hb := carry_bounds (s1 := ∅) z ‹_› _ (empty_subset _)
-    (by decide) (by grind) hz' ‹_› ‹_› ‹_› (by decide)
+    (by decide) (by grind) hz' ‹_› ‹_› (by decide)
   obtain ⟨hb1, hb2, hb3, hb4, hb5⟩ := hb
   step
   --Proving the preconditions for the next 5 carries
   iterate 5
-    have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› ‹_› (by decide)
+    have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› (by decide)
     clear hb1 hb2 hb3 hb4 hb5
     obtain ⟨hb1, hb2, hb3, hb4, hb5⟩ := hb
     step
@@ -134,7 +133,7 @@ private theorem reduceCarryChain_spec (z : Array U64 10#usize)
   have hz6 := hb1 4 (by decide)
   --Proceeding with the iteration, proving the preconditions for 2 more carries
   iterate 2
-    have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› ‹_› (by decide)
+    have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› (by decide)
     clear hb1 hb2 hb3 hb4 hb5
     obtain ⟨hb1, hb2, hb3, hb4, hb5⟩ := hb
     step
@@ -142,13 +141,13 @@ private theorem reduceCarryChain_spec (z : Array U64 10#usize)
   --Need to break the iteration to introduce a hypothesis for later use
   have hz8 := hb1 5 (by decide)
   --Proving the precondition for the last carry
-  have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› ‹_› (by decide)
+  have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› (by decide)
   clear hb1 hb2 hb3 hb4 hb5
   obtain ⟨hb1, hb2, hb3, hb4, hb5⟩ := hb
   step
   · exact hb3 _ (by decide)
   --Final propagation of bounds
-  have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› ‹_› (by decide)
+  have hb := carry_bounds _ ‹_› _ hb4 hb5 hb1 hb2 ‹_› ‹_› (by decide)
   clear hb1 hb2 hb3 hb4 hb5
   obtain ⟨hb1, hb2, hb3, hb4, hb5⟩ := hb
   --Proving the postconditions
@@ -158,7 +157,7 @@ private theorem reduceCarryChain_spec (z : Array U64 10#usize)
     by_cases hj5 : j = 5
     · rewrite [hj5]; exact Nat.lt_of_lt_of_le h2 (by decide)
     · exact Nat.lt_of_lt_of_le (h1 j hj hj5)
-        (by rewrite [Nat.pow_le_pow_iff_right (by decide)]; exact Nat.sub_le _ _)
+        (by rewrite [limbRadix, Nat.pow_le_pow_iff_right (by decide)]; exact Nat.sub_le _ _)
   split_conjs
   · intro j hj1 hj2
     have hj : j ∈ range 9 \ {5} := by
@@ -182,12 +181,12 @@ multiple of `19` by the identity `2^255 ≡ 19 [MOD p]`. Therefore the fold in p
 modulo `p` only. -/
 @[local step]
 private theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
-    (hof : z10[0]!.val + 19 * (z10[9]!.val / 2 ^ 25) < 2 ^ 64) :
+    (hof : z10[0]!.val + 19 * (z10[9]!.val / limbRadix 9) < 2 ^ 64) :
     reduceFoldIn z10 ⦃ (z12 : Array U64 10#usize) =>
       --The first equation is redundant but it is the main statement used later
       z12.uScalarToNatField2625 % p = z10.uScalarToNatField2625 % p ∧
-      z12[0]!.val = z10[0]!.val + 19 * (z10[9]!.val / 2 ^ 25) ∧
-      z12[9]!.val = z10[9]!.val % 2 ^ 25 ∧
+      z12[0]!.val = z10[0]!.val + 19 * (z10[9]!.val / limbRadix 9) ∧
+      z12[9]!.val = z10[9]!.val % limbRadix 9 ∧
       (∀ j, 0 < j → j < 9 → z12[j]!.val = z10[j]!.val) ⦄ := by
   unfold reduceFoldIn
   step*
@@ -201,10 +200,10 @@ private theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
   · obtain ⟨h1, h2, h3⟩ := h
     unfold Array.uScalarToNatField2625
     rewrite [← sum_sdiff (s₁ := {0, 9})
-    (f := fun j => 2 ^ (26 * ((j + 1) / 2) + 25 * (j / 2)) * z10[j]!.val)
+    (f := fun j => limbWeight j * z10[j]!.val)
     (by simp only [insert_subset_iff, singleton_subset_iff, mem_range]; agrind),
     ← sum_sdiff (s₁ := {0, 9})
-    (f := fun j => 2 ^ (26 * ((j + 1) / 2) + 25 * (j / 2)) * z12[j]!.val)
+    (f := fun j => limbWeight j * z12[j]!.val)
     (by simp only [insert_subset_iff, singleton_subset_iff, mem_range]; agrind)]
     rewrite [sum_congr rfl (fun x hx => by rw [h3 x (by grind) (by grind)])]
     apply Nat.add_mod_eq_add_mod_left
@@ -213,8 +212,8 @@ private theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
     agrind [p_add_19]
   --Proving the independent postconditions
   split_conjs
-  · simp only [*]; simp_lists; simp only [*, Nat.shiftRight_eq_div_pow]
-  · simp only [*]; simp_lists
+  · simp only [*, limbRadix]; simp_lists; simp only [*, Nat.shiftRight_eq_div_pow]
+  · simp only [*, limbRadix]; simp_lists
     conv => lhs; simp only [‹(_ : Nat) = _ &&& _›, UScalar.val_and]
     conv => lhs; arg 2; simp only [*]
     rewrite [Nat.and_two_pow_sub_one_eq_mod _ _]
@@ -270,7 +269,7 @@ theorem reduce_spec (z : Array U64 10#usize)
     reduce z ⦃ (result : FieldElement2625) =>
       (∀ i, i < 10 → result[i]!.val < 2 ^ 26) ∧
       result.toNat % p = z.uScalarToNatField2625 % p ∧
-      (∀ i, i < 10 → result[i]!.val < 2 ^ (26 - i % 2) + i % 2 * 2 ^ 18) ⦄ := by
+      (∀ i, i < 10 → result[i]!.val < limbRadix i + i % 2 * 2 ^ 18) ⦄ := by
   rewrite [reduce_decomp]
   --Aeneas has a setting of genLocal = 2 for step. Adding 1 to it here helps discharging a goal.
   step* (genLocal := 3)
