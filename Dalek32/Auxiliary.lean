@@ -131,6 +131,19 @@ theorem toNat_congr (x y : FieldElement2625) (h : ∀ i, i < 10 → x[i]!.val = 
   rw [toNat_eq, toNat_eq]; rw [Array.toNatField2625_congr]; exact h
 
 
+/-- Theorem to unfold `limbRadix` for `scalar_tac` and `agrind`, so that `step` can discharge
+preconditions stated with it. It is deliberately not a `simp` lemma, so that `simp` keeps
+`limbRadix` folded in hypotheses and goals. -/
+@[scalar_tac_simps, agrind =]
+theorem limbRadix_eq (i : Nat) : limbRadix i = 2 ^ (26 - i % 2) := rfl
+
+
+/-- Theorem to unfold `limbWeight` for `scalar_tac` and `agrind`. It is deliberately not a `simp`
+lemma, so that `simp` keeps `limbWeight` folded in hypotheses and goals. -/
+@[scalar_tac_simps, agrind =]
+theorem limbWeight_eq (i : Nat) : limbWeight i = 2 ^ (26 * ((i + 1) / 2) + 25 * (i / 2)) := rfl
+
+
 /-- The weight of the (i+1)-st limb is equal to the weight of the i-th limb multiplied by the i-th
 radix. -/
 theorem limbWeight_succ (i : Nat) :
