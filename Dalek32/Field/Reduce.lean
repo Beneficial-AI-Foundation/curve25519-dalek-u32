@@ -14,9 +14,9 @@ import Dalek32.Field.reduce.Carry
 # Spec theorem for `reduce`
 
 `reduce z` takes an `Array U64 10#usize` and returns a `FieldElement2625`, i.e. ten `u32`
-limbs, that represent the same value modulo `p` in the alternating `2^26/2^25` radix. It runs a
-carry chain over the limbs, folds the overflow of limb `9` back into limb `0` scaled by `19` (using
-that `2 ^ 255 ≡ 19 [MOD p]`), carries once more out of limb `0` and casts the limbs to `u32`.
+limbs, that represent the same value as `z` modulo `p` in the alternating `2^26/2^25` radix. It runs
+a carry chain over the limbs, folds the overflow of limb `9` back into limb `0` scaled by `19`
+(using that `2 ^ 255 ≡ 19 [MOD p]`), carries once more out of limb `0` and casts the limbs to `u32`.
 Source: 'curve25519-dalek/src/backend/serial/u32/field.rs', lines 336:4-390:5
 -/
 
@@ -24,10 +24,10 @@ open Aeneas Aeneas.Std Result Aeneas.Std.WP Finset
 namespace Curve25519Dalek.backend.serial.u32.field.FieldElement2625
 
 /- `reduce` splits into four phases:
-- interleaved carry chain,
-- `× 19` fold-in,
-- final carry
-- cast packing
+1. interleaved carry chain,
+2. `× 19` fold-in,
+3. final carry
+4. cast packing
 -/
 
 set_option linter.hashCommand false in
@@ -36,9 +36,19 @@ set_option linter.hashCommand false in
   letRange 1 10 => reduceFoldIn
   letRange 3 21 => reduceCasts
 
+/-- Interleaved carry chain of `reduce`: carries limbs `0` to `8` into their successors following
+the order (0,4,1,5,2,6,3,7,4,8). -/
+add_decl_doc reduceCarryChain
+
+/-- `× 19` fold-in of `reduce`: adds `19` times the carry out of limb `9` to limb `0`. -/
+add_decl_doc reduceFoldIn
+
+/-- Cast packing of `reduce`: casts the ten `u64` limbs to `u32` into a `FieldElement2625`. -/
+add_decl_doc reduceCasts
+
 
 /-Helper theorem that keeps track of the bounds that hold for the limbs of an array after a carry.-/
-theorem carry_bounds {s1 s2 : Finset Nat} (z z' : Array U64 10#usize) (i : Nat)
+private theorem carry_bounds {s1 s2 : Finset Nat} (z z' : Array U64 10#usize) (i : Nat)
   (hsub1 : s1 ⊆ range 10) (hsub2 : s2 ⊆ range 10)
   --`s1` is the set of indices that underwent masking and haven't been touched since
   (hs1 : ∀ j, j ∈ s1 → z[j]!.val < 2 ^ (26 - j % 2))
@@ -96,7 +106,7 @@ theorem carry_bounds {s1 s2 : Finset Nat} (z z' : Array U64 10#usize) (i : Nat)
 for a bit of a leeway for limb 5, while keeping the represented value unchanged. The proof works by
 propagating the available bounds one monadic step at a time, using `carry_bounds`. -/
 @[local step]
-theorem reduceCarryChain_spec (z : Array U64 10#usize)
+private theorem reduceCarryChain_spec (z : Array U64 10#usize)
     (hz : ∀ i, i < 10 → z[i]!.val ≤ 2 ^ 64 - 2 ^ 39) :
     reduceCarryChain z ⦃ (z10 : Array U64 10#usize) =>
       --The first bound is redundant, but helps step* discharging goals later
@@ -171,10 +181,10 @@ in limb 9 is a multiple of `2^255` in the Nat representation and hence can be in
 multiple of `19` by the identity `2^255 ≡ 19 [MOD p]`. Therefore the fold in preserves the Nat value
 modulo `p` only. -/
 @[local step]
-theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
+private theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
     (hof : z10[0]!.val + 19 * (z10[9]!.val / 2 ^ 25) < 2 ^ 64) :
     reduceFoldIn z10 ⦃ (z12 : Array U64 10#usize) =>
-      --The first equation is redundant but helps step* discharging goals later
+      --The first equation is redundant but it is the main statement used later
       z12.uScalarToNatField2625 % p = z10.uScalarToNatField2625 % p ∧
       z12[0]!.val = z10[0]!.val + 19 * (z10[9]!.val / 2 ^ 25) ∧
       z12[9]!.val = z10[9]!.val % 2 ^ 25 ∧
@@ -217,7 +227,7 @@ theorem reduceFoldIn_spec (z10 : Array U64 10#usize)
 represented as `U32`s without changing their values. This in particular keeps the represented Nat
 value the same as well. -/
 @[local step]
-theorem reduceCasts_spec (z13 : Array U64 10#usize)
+private theorem reduceCasts_spec (z13 : Array U64 10#usize)
     (hbounds : ∀ i, i < 10 → z13[i]!.val < 2 ^ 32) :
     reduceCasts z13 ⦃ (result : FieldElement2625) =>
       --This equality follows from the next one by a general congruence theorem
@@ -246,7 +256,7 @@ theorem reduceCasts_spec (z13 : Array U64 10#usize)
 /-- **Spec theorem for**
 `curve25519_dalek::backend::serial::u32::field::FieldElement2625::reduce`
 The postconditions for `reduce` are the represented value preservation modulo `p` and that each limb
-is reduced under the radix plus some occasional small leeway. Here we state a constant bound of
+is reduced under the radix plus some occasional small leeway. Here we also state a constant bound of
 `2^26` on the limbs for when this simpler form is enough. However, some functions do require a
 tighter bound on the odd limbs, hence we give a stronger statement too where odd limbs are bounded
 by `2^25 + 2^18`. This covers even the largest excess over the radix coming from limb 1.
@@ -278,12 +288,3 @@ theorem reduce_spec (z : Array U64 10#usize)
 
 
 end Curve25519Dalek.backend.serial.u32.field.FieldElement2625
-/-Nicer proof for Array.uScalarToNatRadix_set in Auxiliary.lean
-  unfold uScalarToNatRadix
-  simp only [← sum_sdiff (by rewrite [singleton_subset_iff, mem_range]; exact hi), sum_singleton]
-  simp_lists
-  simp only [Nat.add_assoc]
-  nth_rewrite 2 [Nat.add_comm]; rewrite [Nat.add_right_cancel_iff]
-  exact sum_congr (by rfl)
-    (by intro j hj; rewrite [mem_sdiff, mem_range, mem_singleton] at hj; simp_lists)
--/
