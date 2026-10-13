@@ -75,6 +75,13 @@ theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
 
 
+/-- Checked indexing into the underlying list of an `Std.Array` agrees with `getElem!`. Unlike
+`List.Inhabited_getElem_eq_getElem!` (a `def`) this can be used by `simp`. -/
+theorem Array.getElem_val_eq_getElem! {α : Type} [Inhabited α] {N : Usize} (a : Std.Array α N)
+    (j : Nat) (h : j < (↑a : List α).length) : (↑a : List α)[j] = a[j]! := by
+  rw [Array.getElem!_Nat_eq, List.Inhabited_getElem_eq_getElem! _ _ h]
+
+
 end Aeneas.Std
 
 
@@ -223,6 +230,19 @@ theorem Nat.add_mul_mod_mul_left_of_lt {m n k l : Nat} (hm : m < l) :
     (m + l * n) % (l * k) = m + l * n % (l * k) := by
   simp only [Nat.mul_comm]
   exact Nat.add_mul_mod_mul_right_of_lt hm
+
+
+theorem Nat.lt_mod_mul_add_mod {a b m n : Nat} (hm : 0 < m) (hn : 0 < n) :
+    a % m * n + b % n < m * n := by
+  calc
+    _ ≤ (m - 1) * n + b % n :=
+      by rewrite [Nat.add_le_add_iff_right, Nat.mul_le_mul_right_iff hn]
+         apply Nat.le_sub_one_of_lt; exact Nat.mod_lt _ hm
+    _ < (m - 1) * n + n :=
+      by rewrite [Nat.add_lt_add_iff_left]; exact Nat.mod_lt _ hn
+    _ = m * n :=
+      by rw [Nat.sub_mul, Nat.one_mul, Nat.sub_add_cancel (by exact Nat.le_mul_of_pos_left _ hm)]
+
 
 namespace Finset
 
