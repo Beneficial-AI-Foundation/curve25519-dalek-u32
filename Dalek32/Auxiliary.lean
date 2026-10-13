@@ -132,6 +132,14 @@ theorem toNat_congr (x y : FieldElement2625) (h : ∀ i, i < 10 → x[i]!.val = 
   rw [toNat_eq, toNat_eq]; rw [Array.toNatField2625_congr]; exact h
 
 
+/-- The weight of the (i+1)-st limb is equal to the weight of the i-th limb multiplied by the i-th
+radix. -/
+theorem limbWeight_succ (i : Nat) :
+    limbWeight (i + 1) = limbRadix i * limbWeight i := by
+  unfold limbRadix limbWeight
+  rewrite [← Nat.pow_add, Nat.pow_right_inj (by decide)]
+  omega
+
 end backend.serial.u32.field.FieldElement2625
 
 

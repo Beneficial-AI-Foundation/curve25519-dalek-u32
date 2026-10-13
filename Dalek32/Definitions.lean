@@ -22,11 +22,6 @@ def Array.uScalarToNatRadix {ty : UScalarTy} {n : Usize}
   (limbs : Array (UScalar ty) n) (exp : Nat := ty.numBits) : Nat :=
   ∑ i ∈ Finset.range n.val, 2 ^ (exp * i) * (limbs[i]!).val
 
-/-- Turns an `Array (UScalar ty) 10#usize` into a `Nat` using `2 ^ 26` and `2 ^ 25` alternatingly
-as a radix. -/
-def Array.uScalarToNatField2625 {ty : UScalarTy} (limbs : Array (UScalar ty) 10#usize) : Nat :=
-  ∑ i ∈ Finset.range 10, 2 ^ (26 * ((i + 1) / 2) + 25 * (i / 2)) * (limbs[i]!).val
-
 end Aeneas.Std
 
 
@@ -51,6 +46,21 @@ attribute [irreducible] order
 /-! ## FieldELement2625 related definitions (nested into Curve25519Dalek)-/
 
 namespace backend.serial.u32.field.FieldElement2625
+
+/-- The radix for the `i-th` limb of a `FieldElement2625` is `2^26` if `i` is even and `2^25` if `i`
+is odd. -/
+def limbRadix (i : Nat) : Nat := 2 ^ (26 - i % 2)
+
+/-- The weight of the `i-th` limb of a `FieldElement2625` in its `Nat` representation is
+`2^(26·⌈i/2⌉ + 25·⌊i/2⌋)`. -/
+def limbWeight (i : Nat) : Nat := 2 ^ (26 * ((i + 1) / 2) + 25 * (i / 2))
+
+/-- Turns an `Array (UScalar ty) 10#usize` into a `Nat`, weighting limb `i` by `limbWeight i`, i.e.
+using `2 ^ 26` and `2 ^ 25` alternatingly as a radix. `_root_` keeps its name in `Aeneas.Std.Array`
+while `limbWeight` resolves in this namespace. -/
+def _root_.Aeneas.Std.Array.uScalarToNatField2625 {ty : UScalarTy}
+    (limbs : Array (UScalar ty) 10#usize) : Nat :=
+  ∑ i ∈ Finset.range 10, limbWeight i * (limbs[i]!).val
 
 /-- Interpret a `FieldElement2625` (ten u32 limbs used to represent 26/25 bits alternatingly) as a
 natural number. -/
