@@ -9,7 +9,6 @@ import Dalek32.Field.FromLimbs
 import Dalek32.Field.MINUSONE
 import Dalek32.Field.ONE
 import Dalek32.Field.Pow2K
-import Dalek32.Field.Pow2KLoop
 import Dalek32.Field.Reduce
 import Dalek32.Field.Square
 import Dalek32.Field.SquareInner
