@@ -9,8 +9,9 @@ import Dalek32.Field.Reduce
 /-!
 # Squaring contract and composition
 
-The odd input limbs allow the sum of two reduced limbs, including their carry
-slack. The composition uses the proved square_inner and reduce specifications.
+The input domain `SquareInputBounds` (`19 * limb < 2^32`) comfortably contains the
+sum of two reduced limbs, including their carry slack. The composition uses the
+proved square_inner and reduce specifications.
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP

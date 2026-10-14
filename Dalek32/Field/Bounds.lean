@@ -12,9 +12,12 @@ import translated.Funs
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 namespace Curve25519Dalek.backend.serial.u32.field.FieldElement2625
 
-/-- Covers both repeated squaring and the unreduced sum in point doubling. -/
+/-- Overflow-maximal input domain of `square_inner`: `19 * limb` must fit in a `u32`.
+This is the exact integer form of the `b < 1.752` headroom in `field.rs`, applied
+uniformly to all limbs. It covers repeated squaring and the unreduced sum in point
+doubling, and is the widest domain under which `reduce` still accepts the result. -/
 def SquareInputBounds (x : FieldElement2625) : Prop :=
-  ∀ i < 10, x[i]!.val < 2 ^ (27 - i % 2) + i % 2 * 2 ^ 19
+  ∀ i < 10, 19 * x[i]!.val < 2 ^ 32
 
 /-- Carry slack is needed on odd limbs; this does not imply canonicality. -/
 def ReducedBounds (x : FieldElement2625) : Prop :=
@@ -31,7 +34,9 @@ theorem reducedBounds_squareInputBounds {x : FieldElement2625}
 theorem pow2kBounds_squareInputBounds {x : FieldElement2625}
     (h : ∀ i < 10, x[i]!.val < 2 ^ (27 - i % 2)) : SquareInputBounds x := by
   intro i hi
-  exact lt_of_lt_of_le (h i hi) (Nat.le_add_right _ _)
+  have hx := h i hi
+  have hm : i % 2 = 0 ∨ i % 2 = 1 := by omega
+  rcases hm with hm | hm <;> simp only [hm] at hx ⊢ <;> norm_num at hx ⊢ <;> omega
 
 /-- Adding two reduced limb arrays satisfies the square input bound, without
 requiring a reduction between addition and squaring. -/

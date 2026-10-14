@@ -9,15 +9,16 @@ import Mathlib.Tactic.Ring
 
 /-! # Wide-input field squaring
 
-Verifies the extracted straight-line implementation with the input slack needed
-by point doubling. All intermediate machine operations are checked for overflow.
+Verifies the extracted straight-line implementation on its overflow-maximal input
+domain (`19 * limb < 2^32`), which includes the slack needed by point doubling.
+All intermediate machine operations are checked for overflow.
 The value identity accounts explicitly for the terms folded by `2^255 = 19 mod p`.
 
 The overflow bounds are not written by hand: a single `repeat'` loop steps through
 the extracted code and, for each operation, derives the result's bound from the
 operands' bounds (`Nat.mul_le_mul`, `Nat.add_le_add`). Only the uniform input bound
-`2^27 - 1` and the final targets are stated explicitly, so the proof survives
-renumbering of the extracted intermediates.
+`226050910 = ⌊(2^32 - 1) / 19⌋` and the final targets are stated explicitly, so the proof
+survives renumbering of the extracted intermediates.
 -/
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 namespace Curve25519Dalek.backend.serial.u32.field.FieldElement2625
@@ -47,11 +48,10 @@ theorem square_inner_spec (self : FieldElement2625) (h_bounds : SquareInputBound
     square_inner self ⦃ (z : Array U64 10#usize) =>
       Array.uScalarToNatField2625 z % p = toNat self ^ 2 % p ∧
       (∀ i < 10, z[i]!.val ≤ 2 ^ 64 - 2 ^ 39) ⦄ := by
-  have h_limb : ∀ i < 10, self[i]!.val ≤ 2 ^ 27 - 1 := by
-    intro i hi
+  -- `19 * limb < 2^32` is exactly `limb ≤ 226050910`.
+  have h_limb : ∀ i < 10, self[i]!.val ≤ 226050910 := fun i hi => by
     have h := h_bounds i hi
-    have hm : i % 2 = 0 ∨ i % 2 = 1 := by omega
-    rcases hm with hm | hm <;> simp only [hm] at h ⊢ <;> norm_num at h ⊢ <;> omega
+    omega
   unfold square_inner
   -- Symbolic execution. Every intermediate value gets an exact equation `h_*` and an
   -- upper bound `h_*_bound` built from its operands' bounds, so no numeric constant is
@@ -81,7 +81,7 @@ theorem square_inner_spec (self : FieldElement2625) (h_bounds : SquareInputBound
          h_scaled.trans_le (Nat.mul_le_mul (le_refl _) (by assumption)))
     | (step -threadGrindState -grind -assumTac with Array.index_usize_spec
          as ⟨limb, h_limb_eq⟩ by simp
-       have h_limb_bound : limb.val ≤ 2 ^ 27 - 1 := by
+       have h_limb_bound : limb.val ≤ 226050910 := by
          rw [h_limb_eq, ← getElem!_pos, ← Array.getElem!_Nat_eq]
          exact h_limb _ (by decide))
     | (step -threadGrindState -grind -assumTac with Array.update_spec
