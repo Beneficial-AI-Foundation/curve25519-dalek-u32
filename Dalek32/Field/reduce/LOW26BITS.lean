@@ -22,7 +22,7 @@ Bit shift to the left by 26 in terms of natural numbers is multiplying by 2^26, 
 equals to 2^26-1. -/
 @[step]
 theorem reduce.LOW_26_BITS_spec :
-    reduce.LOW_26_BITS ⦃ (result : U64) => result.bv.toNat = 2^26-1 ⦄ := by
+    reduce.LOW_26_BITS ⦃ (result : U64) => result.val = 2 ^ 26 - 1 ⦄ := by
   unfold reduce.LOW_26_BITS
   rfl
 
