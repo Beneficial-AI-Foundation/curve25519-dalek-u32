@@ -265,11 +265,11 @@ The congruence then follows from the phase equalities, the uniform `2 ^ 26` boun
 bounds those phases carry, and the alternating bound from a case split on the limb index. -/
 @[step]
 theorem reduce_spec (z : Array U64 10#usize)
-    (hz : ∀ i, i < 10 → z[i]!.val ≤ 2 ^ 64 - 2 ^ 39) :
+    (hz : ∀ i < 10, z[i]!.val ≤ 2 ^ 64 - 2 ^ 39) :
     reduce z ⦃ (result : FieldElement2625) =>
-      (∀ i, i < 10 → result[i]!.val < 2 ^ 26) ∧
+      (∀ i < 10, result[i]!.val < 2 ^ 26) ∧
       result.toNat % p = z.uScalarToNatField2625 % p ∧
-      (∀ i, i < 10 → result[i]!.val < limbRadix i + i % 2 * 2 ^ 18) ⦄ := by
+      (∀ i < 10, result[i]!.val < limbRadix i + i % 2 * 2 ^ 18) ⦄ := by
   rewrite [reduce_decomp]
   --Aeneas has a setting of genLocal = 2 for step. Adding 1 to it here helps discharging a goal.
   step* (genLocal := 3)
