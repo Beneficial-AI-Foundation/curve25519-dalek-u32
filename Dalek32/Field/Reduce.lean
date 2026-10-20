@@ -16,7 +16,7 @@ import Dalek32.Field.reduce.Carry
 `reduce z` takes an `Array U64 10#usize` and returns a `FieldElement2625`, i.e. ten `u32`
 limbs, that represent the same value as `z` modulo `p` in the alternating `2^26/2^25` radix. It runs
 a carry chain over the limbs, folds the overflow of limb `9` back into limb `0` scaled by `19`
-(using that `2 ^ 255 ≡ 19 [MOD p]`), carries once more out of limb `0` and casts the limbs to `u32`.
+(using that `2^255 ≡ 19 [MOD p]`), carries once more out of limb `0` and casts the limbs to `u32`.
 Source: 'curve25519-dalek/src/backend/serial/u32/field.rs', lines 336:4-390:5
 -/
 
@@ -256,12 +256,13 @@ private theorem reduceCasts_spec (z13 : Array U64 10#usize)
 `curve25519_dalek::backend::serial::u32::field::FieldElement2625::reduce`
 The postconditions for `reduce` are the represented value preservation modulo `p` and that each limb
 is reduced under the radix plus some occasional small leeway. Here we also state a constant bound of
-`2^26` on the limbs for when this simpler form is enough. However, some functions do require a
-tighter bound on the odd limbs, hence we give a stronger statement too where odd limbs are bounded
-by `2^25 + 2^18`. This covers even the largest excess over the radix coming from limb 1.
+`2^26` on the limbs for when this simpler form is enough. However, the function `to_bytes` does
+require a tighter bound on the odd limbs, hence we give a stronger statement too, where odd limbs
+are bounded by `2^25 + 2^18`. This covers even the largest excess over the radix coming from limb 1.
+In fact, an even tighter bound, `2^25.007` is shown in the original Rust docstring.
 The proof is compositional: `reduce_decomp` splits `reduce` into the carry chain, the `× 19`
 fold-in, a final carry and the cast packing, and `step*` chains the spec theorem of each phase.
-The congruence then follows from the phase equalities, the uniform `2 ^ 26` bound from the limb
+The congruence then follows from the phase equalities, the uniform `2^26` bound from the limb
 bounds those phases carry, and the alternating bound from a case split on the limb index. -/
 @[step]
 theorem reduce_spec (z : Array U64 10#usize)
