@@ -70,7 +70,8 @@ theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
 
 
--- Used in: Dalek32/Field/ToBytes.lean
+-- Used in: Dalek32/Auxiliary.lean (index_usize_eq, index_mut_usize_eq),
+--   Dalek32/Field/AddAssign.lean, Dalek32/Field/ToBytes.lean
 /-- Checked indexing into the underlying list of an `Std.Array` agrees with `getElem!`. Unlike
 `List.Inhabited_getElem_eq_getElem!` (a `def`) this can be used by `simp`. -/
 theorem Array.getElem_val_eq_getElem! {α : Type} [Inhabited α] {N : Usize} (a : Std.Array α N)
@@ -98,7 +99,8 @@ namespace Curve25519Dalek
 /-Characterization API for `p`: later proofs use only these lemmas below, never the literal value.
 `p` is made irreducible in `Definitions.lean` to avoid accidental unfolding.-/
 
--- Used in: Dalek32/Field/Reduce.lean, Dalek32/Field/SquareInner.lean, Dalek32/Field/ToBytes.lean
+-- Used in: Dalek32/Field/Mul.lean, Dalek32/Field/Negate.lean, Dalek32/Field/Reduce.lean,
+--   Dalek32/Field/SquareInner.lean, Dalek32/Field/SubAssign.lean, Dalek32/Field/ToBytes.lean
 theorem p_add_19 : p + 19 = 2 ^ 255 := by norm_num [p]
 
 -- Used in: Dalek32/Field/ToBytes.lean
