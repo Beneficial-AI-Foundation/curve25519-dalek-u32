@@ -67,8 +67,9 @@ theorem Array.uScalarToNatRadix_set {ty : UScalarTy} {n : Usize}
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
-theorem Array.toNatField2625_congr {ty : UScalarTy}
-    (x y : Array (UScalar ty) 10#usize) (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
+theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
+    (x : Array (UScalar ty) 10#usize) (y : Array (UScalar ty') 10#usize)
+    (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
       x.uScalarToNatField2625 = y.uScalarToNatField2625 := by
   unfold uScalarToNatField2625
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
