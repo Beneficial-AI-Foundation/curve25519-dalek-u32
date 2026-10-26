@@ -40,7 +40,7 @@ theorem mul_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
     mul a b ⦃ (result : Scalar29) =>
       IsNormalized result ∧
       asNat result < order ∧
-      asNat result % order = (asNat a * asNat b) % order ⦄ := by
+      asNat result = (asNat a * asNat b) % order ⦄ := by
   unfold mul
   step -threadGrindState -grind -assumTac with mul_internal_spec a b h_a h_b
     as ⟨w, h_w, h_w_bounds⟩
@@ -49,9 +49,8 @@ theorem mul_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
     as ⟨ab, h_ab, h_ab_norm, h_ab_lt⟩
   step -threadGrindState -grind -assumTac with mul_internal_spec ab constants.RR h_ab_norm
     constants.RR_limbs_lt as ⟨w', h_w', h_w'_bounds⟩
-  have h_range' : asNat ab * asNat constants.RR < montgomeryRadix * order := by
-    rw [Nat.mul_comm montgomeryRadix]
-    exact Nat.mul_lt_mul'' h_ab_lt (asNat_bounded _ constants.RR_limbs_lt)
+  have h_range' : asNat ab * asNat constants.RR < montgomeryRadix * order :=
+    mul_lt_montgomeryRadix_mul_order ab constants.RR h_ab_lt constants.RR_limbs_lt
   step -threadGrindState -grind -assumTac with montgomery_reduce_spec w'
     (fun i hi => (h_w'_bounds i hi).trans (by decide)) (by rw [h_w']; exact h_range')
     as ⟨r, h_r, h_r_norm, h_r_lt⟩
@@ -61,6 +60,7 @@ theorem mul_spec (a b : Scalar29) (h_a : IsNormalized a) (h_b : IsNormalized b)
   have h_r' : asNat r * montgomeryRadix ≡ asNat ab * asNat constants.RR [MOD order] := by
     rw [h_w'] at h_r; exact h_r
   have h_rr : asNat constants.RR ≡ montgomeryRadix ^ 2 [MOD order] := constants.RR_spec
+  rw [← Nat.mod_eq_of_lt h_r_lt]
   apply cancel_montgomeryRadix
   calc asNat r * montgomeryRadix
       ≡ asNat ab * asNat constants.RR [MOD order] := h_r'
