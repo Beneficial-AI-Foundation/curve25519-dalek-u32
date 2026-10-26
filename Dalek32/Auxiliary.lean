@@ -67,8 +67,9 @@ theorem Array.uScalarToNatRadix_set {ty : UScalarTy} {n : Usize}
 
 /-- Two `UScalar` arrays of `length 10` with pointwise-equal limb values have equal `Nat`
 representations in the alternating `2^26/2^25` radix. -/
-theorem Array.toNatField2625_congr {ty : UScalarTy}
-    (x y : Array (UScalar ty) 10#usize) (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
+theorem Array.toNatField2625_congr {ty ty' : UScalarTy}
+    (x : Array (UScalar ty) 10#usize) (y : Array (UScalar ty') 10#usize)
+    (h : ∀ i, i < 10 → x[i]!.val = y[i]!.val) :
       x.uScalarToNatField2625 = y.uScalarToNatField2625 := by
   unfold uScalarToNatField2625
   rw [sum_congr (by rfl) (by intro i hi; rewrite [mem_range] at hi; rw[h i hi])]
@@ -131,6 +132,27 @@ theorem toNat_congr (x y : FieldElement2625) (h : ∀ i, i < 10 → x[i]!.val = 
   rw [toNat_eq, toNat_eq]; rw [Array.toNatField2625_congr]; exact h
 
 
+/-- Theorem to unfold `limbRadix` for `scalar_tac` and `agrind`, so that `step` can discharge
+preconditions stated with it. It is deliberately not a `simp` lemma, so that `simp` keeps
+`limbRadix` folded in hypotheses and goals. -/
+@[scalar_tac_simps, agrind =]
+theorem limbRadix_eq (i : Nat) : limbRadix i = 2 ^ (26 - i % 2) := rfl
+
+
+/-- Theorem to unfold `limbWeight` for `scalar_tac` and `agrind`. It is deliberately not a `simp`
+lemma, so that `simp` keeps `limbWeight` folded in hypotheses and goals. -/
+@[scalar_tac_simps, agrind =]
+theorem limbWeight_eq (i : Nat) : limbWeight i = 2 ^ (26 * ((i + 1) / 2) + 25 * (i / 2)) := rfl
+
+
+/-- The weight of the (i+1)-st limb is equal to the weight of the i-th limb multiplied by the i-th
+radix. -/
+theorem limbWeight_succ (i : Nat) :
+    limbWeight (i + 1) = limbRadix i * limbWeight i := by
+  unfold limbRadix limbWeight
+  rewrite [← Nat.pow_add, Nat.pow_right_inj (by decide)]
+  omega
+
 end backend.serial.u32.field.FieldElement2625
 
 
@@ -179,21 +201,6 @@ Analogue of `Nat.two_pow_add_eq_or_of_lt` but with reversed order. -/
 theorem Nat.or_two_pow_eq_add_of_lt {a b i : Nat} (h : a < 2 ^ i) :
     a ||| b * 2 ^ i = a + b * 2 ^ i := by
   rw [Nat.lor_comm, Nat.mul_comm, ← Nat.two_pow_add_eq_or_of_lt h, Nat.add_comm]
-
-
-/-- Adding a low part `m < l` to a multiple of `l` commutes with reduction modulo `k * l` -/
-theorem Nat.add_mul_mod_mul_right_of_lt {m n k l : Nat} (hm : m < l) :
-    (m + n * l) % (k * l) = m + n * l % (k * l) := by
-  by_cases hk : 0 < k
-  · have hlt : m + n * l % (k * l) < k * l := by
-      rw [Nat.mul_mod_mul_right]
-      calc m + n % k * l
-          < l + n % k * l := Nat.add_lt_add_right hm _
-        _ = (n % k + 1) * l := by ring
-        _ ≤ k * l := Nat.mul_le_mul_right _ (Nat.mod_lt n hk)
-    have hmk : m < k * l := Nat.lt_of_lt_of_le hm (Nat.le_mul_of_pos_left l hk)
-    rw [Nat.add_mod, Nat.mod_eq_of_lt hmk, Nat.mod_eq_of_lt hlt]
-  · simp [Nat.eq_zero_of_not_pos hk]
 
 
 namespace Finset
